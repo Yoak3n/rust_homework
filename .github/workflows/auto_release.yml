@@ -16,11 +16,16 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - run: echo $PWD
-    - uses: rust-build/rust-build.action@v1.4.4
+    - name: Compile
+      id: compile
+      uses: rust-build/rust-build.action@v1.4.4
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         # Output target
         RUSTTARGET: ${{matrix.target}}
         # List of extra files to include in build
         # Path to directory containing Cargo.toml (defaults to project root)
         SRC_DIR: feishu_table_client
-        # List of archive types to publish the binaries with, default "zip", supports zip and all tar formats
+
+      
