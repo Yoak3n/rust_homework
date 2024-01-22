@@ -21,24 +21,6 @@ pub fn new() -> DeviceInfo {
     d
 }
 
-// enum ComputerType {
-//     Windows,
-//     Linux,
-//     MacOS,
-//     Unknown
-// }
-
-// enum PhoneType {
-//     Android,
-//     IOS,
-//     Harmony,
-//     Unknown
-// }
-// enum DeviceType {
-//     Computer,
-//     Phone,
-//     Nas
-// }
 
 
  impl DeviceInfo{
@@ -47,15 +29,7 @@ pub fn new() -> DeviceInfo {
         let mut sys = sysinfo::System::new_all();
         sys.refresh_all();
         let system_name = System::name().expect("Unknown OS");
-        match system_name.as_str() {
-            "Windows" => self.device_type = String::from("Computer"),
-            "Linux" => self.device_type = String::from("Computer"),
-            "Darwin" => self.device_type = String::from("Computer"),
-            "Android" => self.device_type = String::from("Phone"),
-            "iOS" => self.device_type = String::from("Phone"),
-            "Harmony" => self.device_type = String::from("Phone"),
-            _ => self.device_type = String::from("Unknown")
-        }
+        self.device_type = system_name;
         self.name = System::host_name().expect("Unknown Hostname");
         self.memory_usage = get_memory_usage(&sys);
         self.cpu_usage = get_cpu_usage(&mut sys);
