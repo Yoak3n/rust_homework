@@ -53,7 +53,7 @@ fn get_memory_usage(sys:&System) -> f64{
 }
 fn get_cpu_usage(sys:&mut System) -> f64{
     sys.refresh_cpu();
-    sys.global_cpu_info().cpu_usage() as f64 
+    sys.global_cpu_info().cpu_usage() as f64 / 100.0  
 }
 fn get_disk_usage() -> f64 {
     let disks = Disks::new_with_refreshed_list();

@@ -1,8 +1,8 @@
 [package]
-name = "feishu_table_client"
-version = "0.1.0"
+name = "feishu-table-client"
+version = "0.1.1"
 edition = "2021"
-default-run = "feishu_table_client"
+default-run = "feishu-table-client"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

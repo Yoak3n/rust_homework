@@ -21,8 +21,8 @@ jobs:
 
     - name: Get version
       id: get_version
-      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
-      # run: echo "{VERSION}={GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
+      # run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
     - uses: actions/checkout@v3
     - run: echo $PWD
     - name: Compile
@@ -34,9 +34,9 @@ jobs:
         # Output target
         RUSTTARGET: ${{matrix.target}}
         ARCHIVE_TYPES: ${{ matrix.archive }}
-        ARCHIVE_NAME: feishu_table_client_${{steps.get_version.outputs.VERSION}}_${{matrix.target}}
+        ARCHIVE_NAME: feishu-table-client_${{steps.get_version.outputs.VERSION}}_${{matrix.target}}
         # List of extra files to include in build
         # Path to directory containing Cargo.toml (defaults to project root)
-        SRC_DIR: feishu_table_client
+        SRC_DIR: feishu-table-client
 
       
