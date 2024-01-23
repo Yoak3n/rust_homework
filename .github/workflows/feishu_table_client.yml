@@ -34,7 +34,7 @@ jobs:
         # Output target
         RUSTTARGET: ${{matrix.target}}
         ARCHIVE_TYPES: ${{ matrix.archive }}
-        ARCHIVE_NAME: feishu_table_client_${{steps.get_version.outputs}}_${{matrix.target}}
+        ARCHIVE_NAME: feishu_table_client_${{steps.get_version.outputs.VERSION}}_${{matrix.target}}
         # List of extra files to include in build
         # Path to directory containing Cargo.toml (defaults to project root)
         SRC_DIR: feishu_table_client

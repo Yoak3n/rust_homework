@@ -9,8 +9,8 @@ pub mod process_data{
     pub fn parese_data(data: &DeviceInfo) -> Result<Value,Box<dyn Error>> {
         
         let f = format!(r#"{{
-            "家庭设备":"{}","内存占用":{},"磁盘占用":{},"设备类型":"{}"
-        }}"#,data.name,data.memory_usage,data.disk_usage,data.device_type);
+            "家庭设备":"{}","内存占用":{},"磁盘占用":{},"设备类型":"{}","CPU占用":{}
+        }}"#,data.name,data.memory_usage,data.disk_usage,data.device_type,data.cpu_usage);
         let record: Value = from_str(&f)?;
         Ok(record)
     }
