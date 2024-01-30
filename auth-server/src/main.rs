@@ -12,6 +12,7 @@ async fn greet(name: web::Path<String>) -> impl Responder {
     format!("Hello {name}!")
 }
 use auth_server::controller::*;
+use chrono::NaiveDateTime;
 #[get("/callback")]
 async fn callback(
     info: web::Query<QueryModel>,
@@ -20,8 +21,8 @@ async fn callback(
     let query = QueryModel{
         code: info.code.to_string(),
         state: info.state.to_string(),
+        time: Some(NaiveDateTime::from(chrono::Utc::now().naive_local()))
     };
-
     let info = new_data(&share_data.db,query).await;
     HttpResponse::Ok().json(info)
 }
@@ -32,7 +33,8 @@ async fn auth(
     share_data: web::Data<AppState>
 ) ->  HttpResponse{
     let r = get_data(&share_data.db,info.as_str()).await;
-    HttpResponse::Ok().json(r.get(0).unwrap())
+    
+    HttpResponse::Ok().json(r)
 }
 
 #[tokio::main] // #[actix_web::main] 
