@@ -12,6 +12,18 @@ let tabData = reactive([{
 }]
 )
 
+import { create_bookmark,read_bookmarks } from './api';
+const click1 = ()=> {
+  create_bookmark({url:'url',name:'name',content:'url'}).then(res=>{
+    console.log(res);
+  })
+}
+
+const click2 = ()=>{
+  read_bookmarks().then(res=>{
+    console.log(res);
+  })
+}
 
 </script>
 
@@ -42,7 +54,8 @@ let tabData = reactive([{
     behavior="desktop" 
     bordered>
       <!-- drawer content -->
-      123454
+      <button @click="click1">button1</button>
+      <button @click="click2">button2</button>
     </q-drawer>
 
     <q-page-container>
