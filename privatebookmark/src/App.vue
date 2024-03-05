@@ -32,8 +32,6 @@ const click2 = ()=>{
 
     <q-header elevated class="bg-white text-blue-grey-10" height-hint="98">
       <q-toolbar>
-        
-
         <q-toolbar-title>
           <q-avatar>
             <img src="../src-tauri/icons/Square142x142Logo.png">
