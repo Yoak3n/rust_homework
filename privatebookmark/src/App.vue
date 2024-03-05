@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref,reactive}  from 'vue'
 
-const leftDrawerOpen = ref(true)
+const leftDrawerOpen = ref(false)
 const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
@@ -32,7 +32,7 @@ const click2 = ()=>{
 
     <q-header elevated class="bg-white text-blue-grey-10" height-hint="98">
       <q-toolbar>
-        <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
+        
 
         <q-toolbar-title>
           <q-avatar>
@@ -40,6 +40,8 @@ const click2 = ()=>{
           </q-avatar>
           Bookmark
         </q-toolbar-title>
+        <q-space/>
+        <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
       </q-toolbar>
 
       <q-tabs align="left">
@@ -50,7 +52,7 @@ const click2 = ()=>{
     <q-drawer 
     show-if-above 
     v-model="leftDrawerOpen" 
-    side="left" 
+    side="right" 
     behavior="desktop" 
     bordered>
       <!-- drawer content -->
