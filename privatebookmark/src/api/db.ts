@@ -8,14 +8,15 @@ async function initiate_table() {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         tab TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`)
+        created_at DATETIME DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime'))
+    )`)
     let result = await db.execute(
         `CREATE TABLE IF NOT EXISTS bookmark (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             url TEXT NOT NULL,
             content TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            created_at DATETIME DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime')),
             category_id INTEGER,
             CONSTRAINT fk_category
             FOREIGN KEY (category_id)

@@ -20,6 +20,8 @@
     "@quasar/vite-plugin": "^1.6.0",
     "@tauri-apps/cli": "^1.5.8",
     "@vitejs/plugin-vue": "^5.0.4",
+    "sass": "^1.71.1",
+    "sass-loader": "^14.1.1",
     "typescript": "^5.0.2",
     "vite": "^5.0.12",
     "vue-router": "^4.3.0",
