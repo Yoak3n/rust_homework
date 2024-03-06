@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted,computed } from 'vue'
 import type { Category, Bookmark } from './api/type';
-import {read_bookmarks, read_categories } from './api';
+import {read_bookmarks } from './api';
+import { useCategoryStore } from './store/modules/category';
 
 import ShowData from './components/common/ShowData.vue';
 import Drawer from './components/common/Drawer.vue';
 const leftDrawerOpen = ref(false)
+const categoryStore = useCategoryStore()
 let activeTab = ref(0)
 const toggleLeftDrawer = () => {
   console.log(leftDrawerOpen.value);
@@ -24,7 +26,8 @@ let tabData: category[] = reactive([{
     } ])
 
 const initializeCategories = async() => {
-  let res:Category[] = await read_categories()
+  await categoryStore.read_categories()
+  let res:Category[] = categoryStore.categories
   for (const item of res) {
     const c: category = {
       name: item.name,

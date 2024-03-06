@@ -12,6 +12,7 @@
   "dependencies": {
     "@quasar/extras": "^1.16.9",
     "@tauri-apps/api": "^1.5.2",
+    "pinia": "^2.1.7",
     "quasar": "^2.14.6",
     "tauri-plugin-sql-api": "github:tauri-apps/tauri-plugin-sql#v1",
     "vue": "^3.3.4"
