@@ -12,7 +12,9 @@ export const useCategoryStore = defineStore(
         },
         actions:{
             async read_categories(){
+                const uncategories :Category= {id:0,name:'未分类',tab:'uncategories'} 
                 this.categories = await read_categories()
+                this.categories.push(uncategories)
                 localStorage.setItem('categories',JSON.stringify(this.categories))
             },
             async create_category(record:Category){

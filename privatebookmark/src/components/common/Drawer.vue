@@ -35,12 +35,12 @@
             <q-input filled label="书签名" v-model="data.name" />
             <q-input filled label="链接" v-model="data.url" />
             <q-input filled label="描述" v-model="data.content" />
-            <q-select v-model="data.category_id" :options="categories" filled/>
-
+            <q-select v-model="option" :options="categories" filled />
+            <div>
+              <q-btn label="Submit" @click="submit_bookmark"></q-btn>
+              <q-btn label="Submit" @click="click_category"></q-btn>
+            </div>
           </q-form>
-          <div>
-            <q-btn label="Submit" type="submit" @click="submit_bookmark"></q-btn>
-          </div>
         </q-card-section>
       </q-card>
 
@@ -58,33 +58,38 @@ import type { Bookmark } from '../../api/type';
 
 const categoryStore = useCategoryStore()
 let showCreateBookmark = ref(false)
-let data = reactive<Bookmark>({ name: '', url: '', content: '', category_id: 0 })
-
+let data = reactive<Bookmark>({ name: '', url: '', content: '' })
+let option = ref({label: '未分类', value: 0})
 let computed_url = computed(() => {
   let tmp = data.url
-  if (!tmp.startsWith('http')){
+  if (!tmp.startsWith('http')) {
     tmp = 'https://' + data.url
   }
   return tmp
 })
 
 const submit_bookmark = () => {
-  create_bookmark({name: data.name, url: computed_url.value,content:data.content,category_id:data.category_id}).then(res => {
-    if (res > 0){
+  let record :Bookmark= { name: data.name, url: computed_url.value, content: data.content, category_id: option.value.value }
+  create_bookmark(record).then(res => {
+    if (res > 0) {
       showCreateBookmark.value = false
-    } 
+    }
   })
 }
 const categories = computed(() => {
-  return categoryStore.categories.map((item)=>{
-    return {label:item.name,value:item.id}
+  return categoryStore.categories.map((item) => {
+    return { label: item.name, value: item.id }
   })
 })
+
+const click_category = () => {
+  let record :Bookmark= { name: data.name, url: computed_url.value, content: data.content, category_id: option.value.value }
+  console.log(record);
+}
+
 const click1 = () => {
   categoryStore.read_categories()
   showCreateBookmark.value = true
-
-
 }
 const click2 = () => {
   read_bookmarks().then(res => {
