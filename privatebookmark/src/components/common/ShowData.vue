@@ -9,7 +9,6 @@ const props = defineProps({
         required: true
     }
 })
-
 </script>
 
 <template>
@@ -23,11 +22,8 @@ const props = defineProps({
                     </q-chip>
                 </a>
             </q-card-section>
-            <q-pagination v-model="current" max="5"/>
+
         </q-card>
-
+        <q-pagination v-model="current" max="5" />
     </div>
-
-
-
 </template>

@@ -11,7 +11,7 @@ async function initiate_table() {
         tab TEXT NOT NULL,
         created_at DATETIME DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime'))
     )`)
-    let result = await db.execute(
+    await db.execute(
         `CREATE TABLE IF NOT EXISTS bookmark (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -24,8 +24,6 @@ async function initiate_table() {
             REFERENCES category(id)
         )`
     )
-    console.log(result);
-    
 }
 
 initiate_table()

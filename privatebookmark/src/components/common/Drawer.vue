@@ -3,20 +3,21 @@
     <q-list class="menu-list">
       <q-item clickable @click="click1" v-ripple>
         <q-item-section avatar>
-          创建书签
+            <q-icon name="fa-regular fa-plus"/>
         </q-item-section>
+        <q-item-section >创建书签</q-item-section>
       </q-item>
       <q-item clickable @click="click2" v-ripple>
         <q-item-section avatar>
-          读取书签
+          <q-icon name="inbox" />
         </q-item-section>
+        <q-item-section>创建分类</q-item-section>
       </q-item>
-      <q-space />
-      <q-item clickable @click="click2" v-ripple>
+      <!-- <q-item clickable @click="click2" v-ripple>
         <q-item-section avatar>
           创建分类
         </q-item-section>
-      </q-item>
+      </q-item> -->
     </q-list>
     <q-dialog v-model="showCreateBookmark">
       <q-card>
@@ -25,7 +26,7 @@
             <img src="https://cdn.quasar.dev/logo-v2/svg/logo.svg">
           </q-avatar>
 
-          <q-toolbar-title><span class="text-weight-bold">Create</span> Bookmark</q-toolbar-title>
+          <q-toolbar-title><span class="text-weight-bold">Create</span>Bookmark</q-toolbar-title>
 
           <q-btn flat round dense icon="close" v-close-popup />
         </q-toolbar>
@@ -59,7 +60,7 @@ import type { Bookmark } from '../../api/type';
 const categoryStore = useCategoryStore()
 let showCreateBookmark = ref(false)
 let data = reactive<Bookmark>({ name: '', url: '', content: '' })
-let option = ref({label: '未分类', value: 0})
+let option = ref({ label: '未分类', value: 0 })
 let computed_url = computed(() => {
   let tmp = data.url
   if (!tmp.startsWith('http')) {
@@ -69,7 +70,7 @@ let computed_url = computed(() => {
 })
 
 const submit_bookmark = () => {
-  let record :Bookmark= { name: data.name, url: computed_url.value, content: data.content, category_id: option.value.value }
+  let record: Bookmark = { name: data.name, url: computed_url.value, content: data.content, category_id: option.value.value }
   create_bookmark(record).then(res => {
     if (res > 0) {
       showCreateBookmark.value = false
@@ -81,11 +82,12 @@ const categories = computed(() => {
     return { label: item.name, value: item.id }
   })
 })
-
 const click_category = () => {
-  let record :Bookmark= { name: data.name, url: computed_url.value, content: data.content, category_id: option.value.value }
+  let record: Bookmark = { name: data.name, url: computed_url.value, content: data.content, category_id: option.value.value }
   console.log(record);
 }
+
+
 
 const click1 = () => {
   categoryStore.read_categories()

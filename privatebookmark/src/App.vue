@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted,computed } from 'vue'
+import { ref, onMounted,computed, reactive } from 'vue'
 import type { Category, Bookmark } from './api/type';
 import {read_bookmarks } from './api';
 import { useCategoryStore } from './store/modules/category';
@@ -9,25 +9,22 @@ import Drawer from './components/common/Drawer.vue';
 const leftDrawerOpen = ref(false)
 const categoryStore = useCategoryStore()
 let activeTab = ref(0)
+let miniState = ref(false)
 const toggleLeftDrawer = () => {
-  console.log(leftDrawerOpen.value);
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
-
 interface category {
   name: string,
   id: number
   data: Bookmark[]
 }
-let tabData: category[] = reactive([{
-      name: "未分类",
-      id: 0,
-      data: []
-    } ])
+let tabData: category[] = reactive([])
 
 const initializeCategories = async() => {
   await categoryStore.read_categories()
   let res:Category[] = categoryStore.categories
+  console.log(res);
+  
   for (const item of res) {
     const c: category = {
       name: item.name,
@@ -50,19 +47,18 @@ onMounted(async() => {
         tabData[index].data.push(item)
       }
     })
-    console.log(tabData);
-    const lenght = tabData.length
-    activeTab.value = tabData[lenght - 1].id
+    activeTab.value = tabData[tabData.length - 1].id
   })
 })
 
-
-
 let data = computed(() => {
   const  index = tabData.findIndex(c => c.id == activeTab.value)
-  return tabData[index].data
+  console.log(index);
+  if (index >= 0){
+    return tabData[index].data
+  }
+  return []
 })
-
 
 
 </script>
@@ -81,14 +77,23 @@ let data = computed(() => {
         <q-space />
         <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
       </q-toolbar>
-
       <q-tabs align="left" v-model="activeTab" >
         <q-tab v-for="item in tabData" :key="item.id" :label="item.name" :name="item.id" />
       </q-tabs>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" side="right" behavior="desktop" class="bg-grey-1" overlay bordered>
-      <!-- drawer content -->
+    <q-drawer 
+    v-model="leftDrawerOpen" 
+    side="right" 
+    behavior="desktop" 
+    class="bg-grey-1" 
+    overlay 
+    bordered 
+    :width="150" 
+    :mini="miniState"
+    @mouseover="miniState = false"
+    @mouseout="miniState = true"
+    >
       <Drawer/>
     </q-drawer>
 
