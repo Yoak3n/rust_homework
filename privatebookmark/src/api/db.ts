@@ -42,6 +42,16 @@ export async function update_bookmark(record: Bookmark) {
     )
     console.log(result);
 }
+export async function search_bookmark(id: number): Promise<Bookmark> {
+    const db = await Database.load(SQLITE_PATH);
+    const result = await db.select<Bookmark[]>("SELECT * FROM bookmark WHERE id=?", [id])
+    if (result.length > 0){
+        return result[0]
+    }
+    return Promise.reject("not found")
+}
+
+
 export async function read_bookmarks(): Promise<Bookmark[]> {
     const db: Database = await Database.load(SQLITE_PATH);
     const result = await db.select<Bookmark[]>("SELECT * FROM bookmark")

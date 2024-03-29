@@ -3,13 +3,14 @@
     <q-list class="menu-list">
       <q-item clickable @click="click1" v-ripple>
         <q-item-section avatar>
-            <q-icon name="fa-regular fa-plus"/>
+          <q-icon name="inbox" />
         </q-item-section>
+
         <q-tooltip class="text-body2" self="center right" anchor="center left" :offset="[10, 10]">创建书签</q-tooltip>
       </q-item>
       <q-item clickable @click="click2" v-ripple>
         <q-item-section avatar>
-          <q-icon name="inbox" />
+            <q-icon name="fa-regular fa-plus"/>
         </q-item-section>
         <q-tooltip class="text-body2" self="center right" anchor="center left" :offset="[10, 10]">创建分类</q-tooltip>
       </q-item>

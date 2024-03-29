@@ -6,7 +6,7 @@ import { useCategoryStore } from './store/modules/category';
 
 import ShowData from './components/common/ShowData.vue';
 import Drawer from './components/common/Drawer.vue';
-const leftDrawerOpen = ref(true)
+const leftDrawerOpen = ref(false)
 const categoryStore = useCategoryStore()
 let activeTab = ref(0)
 const toggleLeftDrawer = () => {
