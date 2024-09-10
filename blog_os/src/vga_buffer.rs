@@ -45,18 +45,40 @@ struct Buffer {
     chars: [[Volatile<ScreenChar>; BUFFER_WIDTH]; BUFFER_HEIGHT],
 }
 
+
+
 pub struct Writer {
     column_position: usize,
     row_postion:usize,
     color_code: ColorCode,
     buffer: &'static mut Buffer,
 }
+use lazy_static::lazy_static;
+use spin::Mutex;
+lazy_static! {
+    pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
+        column_position: 0,
+        row_postion: 0,
+        color_code: ColorCode::new(Color::Yellow, Color::Black),
+        buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
+    });
+}
 
 impl Writer {
+    fn clear_row(&mut self, row: usize) {
+        let blank = ScreenChar {
+            ascii_character: b' ',
+            color_code: self.color_code,
+        };
+        for col in 0..BUFFER_WIDTH {
+            self.buffer.chars[row][col].write(blank);
+        }
+    }
     fn new_line(&mut self) {
         self.row_postion += 1;
         self.column_position = 0;
         if self.row_postion >= BUFFER_HEIGHT {
+            self.clear_row(0);
             self.row_postion = BUFFER_HEIGHT - 1;
             for row in 1..self.row_postion {
                 for col in 0..BUFFER_WIDTH {
@@ -105,20 +127,6 @@ impl Writer {
 }
 
 
-pub fn print_something() {
-    use core::fmt::Write;
-    let mut writer = Writer {
-        column_position: 10,
-        row_postion: 0,
-        color_code: ColorCode::new(Color::Yellow, Color::Black),
-        buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
-    };
-
-    writer.write_byte(b'\n');
-    writer.write_string("Hello ");
-    writer.write_string("World!\n");
-    write!(writer, "The numbers are {} and {}", 42, 1.11).unwrap();
-}
 
 
 use core::fmt;
@@ -127,4 +135,21 @@ impl fmt::Write for Writer {
         self.write_string(s);
         Ok(())
     }
+}
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => ($crate::vga_buffer::_print(format_args!($($arg)*)));
+}
+
+#[macro_export]
+macro_rules! println {
+    () => ($crate::print!("\n"));
+    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+}
+
+#[doc(hidden)]
+pub fn _print(args: fmt::Arguments) {
+    use core::fmt::Write;
+    WRITER.lock().write_fmt(args).unwrap();
 }
