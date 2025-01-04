@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap');
+*{
+    margin: 0;
+    padding:0;
+    box-sizing: border-box;
+    font-family: "Inter", serif;
+}
+
+body{
+    width: 100%;
+    min-height: 100vh;
+    background: linear-gradient( #f4f0ff, #dacdff);
+}
+
+@media (width <=55px){
+    #chatbot-toggler{
+        right: 0px;
+        top: 0px;
+    }
+    body{
+        background: rgba(255, 255, 255, 0);
+    }
+}
