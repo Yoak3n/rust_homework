@@ -5,6 +5,7 @@ import ChatForm from "../../components/ChatForm";
 import type{MessageItem} from '../../types/index'
 import './index.css'
 import ChatMessage from "../../components/ChatMessage";
+import {createSettingWindow} from '../../utils/index'
 export default function Home() {
     const [chatHistory,setChatHistory] = useState<Array<MessageItem>>([])
     const [isChatOpen,setIsChatOpen] = useState(true)
@@ -22,12 +23,12 @@ export default function Home() {
         scrollToBottom()
     },[chatHistory])
     const generateBotResponse =async (history:Array<MessageItem>) => {
-        
+        const {base_url,key} = await getApiSetting()
         const requestOptions = {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization':`Bearer ${import.meta.env.VITE_API_TOKEN}`,
+                'Authorization':`Bearer ${key}`,
             },
             body: JSON.stringify({
                 model: "deepseek-chat",
@@ -35,7 +36,7 @@ export default function Home() {
             })
         }
         try{
-            const res = await fetch(import.meta.env.VITE_API_URL, requestOptions)
+            const res = await fetch(base_url, requestOptions)
             const data = await res.json()
             if(!res.ok) throw new Error(res.statusText || "Something went wrong")
             const botAnswer:MessageItem = data.choices[0].message
@@ -45,6 +46,15 @@ export default function Home() {
             const errMessage:MessageItem  = {role:"system-error",content:err.message,text:err.message}
             updateHistory(errMessage) 
         }
+    }
+
+
+    const getApiSetting= async()=>{
+        const r:Array<string> = await invoke('invoke_api') 
+        if(r.length>0){
+            return {base_url:r[0],key:r[1]}
+        }
+        return {base_url:'',key:''}
     }
     return (
         <div className={`home ${isChatOpen ? 'show-chatbot' : ''}`}>
@@ -81,6 +91,7 @@ export default function Home() {
 
                     </div>
                     <div className="chatbot-footer">
+                        <button onClick={createSettingWindow}>test</button>
                         <ChatForm 
                         chatHistory={chatHistory}
                         setChatHistory={setChatHistory} 

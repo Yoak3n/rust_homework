@@ -1,7 +1,7 @@
 
-use std::sync::Mutex;
+use std::{borrow::Borrow, sync::Mutex};
 use tauri::{PhysicalSize, Size,State,Position,PhysicalPosition};
-use super::AppData;
+use super::{AppData, Settings};
 
 #[tauri::command]
 pub async fn resize_window(window: tauri::Window, state: State<'_, Mutex<AppData>>,hide: bool,shortcut:bool) -> Result<(), String> {
@@ -50,3 +50,11 @@ pub async fn resize_window(window: tauri::Window, state: State<'_, Mutex<AppData
     }
 }
 
+
+// remember to call `.manage(MyState::default())`
+#[tauri::command]
+pub fn invoke_api(state: tauri::State<'_, Mutex<AppData>>) -> Result<(String,String), String> {
+    let state = state.lock().expect("get state error");
+    let se:&Settings = state.setting.borrow();
+  Ok((se.api.base_url.clone(), se.api.key.clone()))
+}
