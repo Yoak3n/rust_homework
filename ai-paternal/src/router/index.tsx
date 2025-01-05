@@ -9,7 +9,7 @@ export default function()
       <Routes>
       <Route path="/" element={<App/>}>
         <Route index element={<Home />} />
-        <Route path="settings" element={<Settings />} />
+        <Route path="setting" element={<Settings />} />
       </Route>
     </Routes>
     )

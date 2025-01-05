@@ -5,12 +5,13 @@ import ChatForm from "../../components/ChatForm";
 import type{MessageItem} from '../../types/index'
 import './index.css'
 import ChatMessage from "../../components/ChatMessage";
+import {createSettingWindow,getApiSetting} from '../../utils/index'
 export default function Home() {
     const [chatHistory,setChatHistory] = useState<Array<MessageItem>>([])
     const [isChatOpen,setIsChatOpen] = useState(true)
     const bodyRef =  useRef<HTMLInputElement>(null);
     const updateHistory = (message:MessageItem) => {
-        setChatHistory([...chatHistory.filter((item) => item.content !== 'Thinking...'),message])
+        setChatHistory((prev:Array<MessageItem>)=>[...prev.filter((item) => item.content !== 'Thinking...'),message])
     }
 
     const scrollToBottom = () => {
@@ -22,30 +23,33 @@ export default function Home() {
         scrollToBottom()
     },[chatHistory])
     const generateBotResponse =async (history:Array<MessageItem>) => {
-        
+        const {base_url,key,model} = await getApiSetting()
         const requestOptions = {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization':`Bearer ${import.meta.env.VITE_API_TOKEN}`,
+                'Authorization':`Bearer ${key}`,
             },
             body: JSON.stringify({
-                model: "deepseek-chat",
+                model,
                 messages: history
             })
         }
         try{
-            const res = await fetch(import.meta.env.VITE_API_URL, requestOptions)
+            const res = await fetch(base_url, requestOptions)
             const data = await res.json()
             if(!res.ok) throw new Error(res.statusText || "Something went wrong")
             const botAnswer:MessageItem = data.choices[0].message
             updateHistory(botAnswer)
+            console.log(chatHistory);
+            
         }
         catch(err:any){
             const errMessage:MessageItem  = {role:"system-error",content:err.message,text:err.message}
             updateHistory(errMessage) 
         }
     }
+
     return (
         <div className={`home ${isChatOpen ? 'show-chatbot' : ''}`}>
             <button id="chatbot-toggler" onClick={async() => {
@@ -81,6 +85,7 @@ export default function Home() {
 
                     </div>
                     <div className="chatbot-footer">
+                        <button onClick={createSettingWindow}>test</button>
                         <ChatForm 
                         chatHistory={chatHistory}
                         setChatHistory={setChatHistory} 
