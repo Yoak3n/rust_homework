@@ -5,13 +5,13 @@ import ChatForm from "../../components/ChatForm";
 import type{MessageItem} from '../../types/index'
 import './index.css'
 import ChatMessage from "../../components/ChatMessage";
-import {createSettingWindow} from '../../utils/index'
+import {createSettingWindow,getApiSetting} from '../../utils/index'
 export default function Home() {
     const [chatHistory,setChatHistory] = useState<Array<MessageItem>>([])
     const [isChatOpen,setIsChatOpen] = useState(true)
     const bodyRef =  useRef<HTMLInputElement>(null);
     const updateHistory = (message:MessageItem) => {
-        setChatHistory([...chatHistory.filter((item) => item.content !== 'Thinking...'),message])
+        setChatHistory((prev:Array<MessageItem>)=>[...prev.filter((item) => item.content !== 'Thinking...'),message])
     }
 
     const scrollToBottom = () => {
@@ -23,7 +23,7 @@ export default function Home() {
         scrollToBottom()
     },[chatHistory])
     const generateBotResponse =async (history:Array<MessageItem>) => {
-        const {base_url,key} = await getApiSetting()
+        const {base_url,key,model} = await getApiSetting()
         const requestOptions = {
             method: 'POST',
             headers: {
@@ -31,7 +31,7 @@ export default function Home() {
                 'Authorization':`Bearer ${key}`,
             },
             body: JSON.stringify({
-                model: "deepseek-chat",
+                model,
                 messages: history
             })
         }
@@ -41,6 +41,8 @@ export default function Home() {
             if(!res.ok) throw new Error(res.statusText || "Something went wrong")
             const botAnswer:MessageItem = data.choices[0].message
             updateHistory(botAnswer)
+            console.log(chatHistory);
+            
         }
         catch(err:any){
             const errMessage:MessageItem  = {role:"system-error",content:err.message,text:err.message}
@@ -48,14 +50,6 @@ export default function Home() {
         }
     }
 
-
-    const getApiSetting= async()=>{
-        const r:Array<string> = await invoke('invoke_api') 
-        if(r.length>0){
-            return {base_url:r[0],key:r[1]}
-        }
-        return {base_url:'',key:''}
-    }
     return (
         <div className={`home ${isChatOpen ? 'show-chatbot' : ''}`}>
             <button id="chatbot-toggler" onClick={async() => {

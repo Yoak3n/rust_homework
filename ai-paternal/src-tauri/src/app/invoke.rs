@@ -53,8 +53,15 @@ pub async fn resize_window(window: tauri::Window, state: State<'_, Mutex<AppData
 
 // remember to call `.manage(MyState::default())`
 #[tauri::command]
-pub fn invoke_api(state: tauri::State<'_, Mutex<AppData>>) -> Result<(String,String), String> {
+pub fn invoke_api(state: tauri::State<'_, Mutex<AppData>>) -> Result<(String,String,String), String> {
     let state = state.lock().expect("get state error");
     let se:&Settings = state.setting.borrow();
-  Ok((se.api.base_url.clone(), se.api.key.clone()))
+  Ok((se.api.base_url.clone(), se.api.key.clone(),se.api.model.clone()))
+}
+
+#[tauri::command]
+pub fn modify_api(state: tauri::State<'_, Mutex<AppData>>,base_url: String,key: String,model:String) -> Result<(), String> {
+    let mut state = state.lock().expect("get state error");
+    state.setting.update_api(crate::setting::API { base_url, key,model});
+    Ok(())
 }
