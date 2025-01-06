@@ -85,7 +85,7 @@ export default function Home() {
 
                     </div>
                     <div className="chatbot-footer">
-                        <button onClick={createSettingWindow}>test</button>
+                        {/* <button onClick={createSettingWindow}>test</button> */}
                         <ChatForm 
                         chatHistory={chatHistory}
                         setChatHistory={setChatHistory} 

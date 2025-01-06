@@ -26,6 +26,14 @@ export const createSettingWindow= async() => {
                 
     })
 }
+export const closeSettingWindow= async()=>{
+    const oldWindow = await WebviewWindow.getByLabel("setting");
+    if (oldWindow) {
+        oldWindow.close();
+    }
+}
+
+
 import {invoke} from '@tauri-apps/api/core'
 import type {APISetting} from '../types/index'
 export  const getApiSetting= async():Promise<APISetting>=>{
