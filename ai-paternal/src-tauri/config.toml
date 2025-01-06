@@ -1,6 +1,0 @@
-debug = true
-[api]
-base_url= "https://api.deepseek.com/chat/completions"
-key= "sk-d0d966aaaf664f8d8d917584a102ec2f"
-model= "deepseek-chat"
-

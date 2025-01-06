@@ -1,11 +1,13 @@
 import {useState,useRef,useEffect}from "react";
 import {invoke} from '@tauri-apps/api/core'
+import { register,ShortcutEvent } from '@tauri-apps/plugin-global-shortcut';
 import BotIcon from "../../components/BotIcon";
 import ChatForm from "../../components/ChatForm";
 import type{MessageItem} from '../../types/index'
 import './index.css'
 import ChatMessage from "../../components/ChatMessage";
-import {createSettingWindow,getApiSetting} from '../../utils/index'
+import {getApiSetting} from '../../utils/index'
+
 export default function Home() {
     const [chatHistory,setChatHistory] = useState<Array<MessageItem>>([])
     const [isChatOpen,setIsChatOpen] = useState(true)
@@ -19,6 +21,16 @@ export default function Home() {
             bodyRef.current.scrollTo({top:bodyRef.current.scrollHeight,behavior:'smooth'})
         }
     }
+    useEffect(() => {
+        register('CommandOrControl+Q', async(event: ShortcutEvent) => {
+          if (event.state === 'Pressed') {
+            invoke('resize_window',{hide: isChatOpen, shortcut: false})
+            setIsChatOpen((prev) =>!prev)
+            console.log(isChatOpen);
+            
+          }
+        }); 
+    },[])
     useEffect(() => {
         scrollToBottom()
     },[chatHistory])
@@ -41,7 +53,6 @@ export default function Home() {
             if(!res.ok) throw new Error(res.statusText || "Something went wrong")
             const botAnswer:MessageItem = data.choices[0].message
             updateHistory(botAnswer)
-            console.log(chatHistory);
             
         }
         catch(err:any){

@@ -7,12 +7,12 @@ use super::{AppData, Settings};
 pub async fn resize_window(window: tauri::Window, state: State<'_, Mutex<AppData>>,hide: bool,shortcut:bool) -> Result<(), String> {
     let r: Result<(), tauri::Error>;
     let mut state = state.lock().unwrap();
-    if shortcut && shortcut {
+    if shortcut {
         state.hide = !state.hide;
     }else{
         state.hide = hide;
     }
-    
+    println!("{}",state.hide);
     if state.hide {
         let current = window.inner_position().expect("get window position error");
         state.max_postion = (current.x, current.y);

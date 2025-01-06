@@ -16,7 +16,6 @@ pub struct API {
 #[derive(Debug, Deserialize,Default)]
 #[allow(unused)]
 pub struct Settings {
-    debug: bool,
     pub api: API
 }
 
@@ -47,7 +46,6 @@ impl Settings {
         data.insert("api.base_url".to_string(), serde_yaml::Value::String(self.api.base_url.clone()));
         data.insert("api.key".to_string(), serde_yaml::Value::String(self.api.key.clone()));
         data.insert("api.model".to_string(), serde_yaml::Value::String(self.api.model.clone()));
-        data.insert("debug".to_string(), serde_yaml::Value::Bool(self.debug));
         let yaml_string = serde_yaml::to_string(&data).unwrap();
         fp.write_all(yaml_string.as_bytes()).unwrap();
     }
