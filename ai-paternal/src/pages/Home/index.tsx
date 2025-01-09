@@ -15,7 +15,7 @@ export default function Home() {
     const updateHistory = (message:MessageItem) => {
         setChatHistory((prev:Array<MessageItem>)=>[...prev.filter((item) => item.content !== 'Thinking...'),message])
     }
-
+    let tempOpenState = isChatOpen;
     const scrollToBottom = () => {
         if(bodyRef.current){
             bodyRef.current.scrollTo({top:bodyRef.current.scrollHeight,behavior:'smooth'})
@@ -24,16 +24,17 @@ export default function Home() {
     useEffect(() => {
         register('CommandOrControl+Q', async(event: ShortcutEvent) => {
           if (event.state === 'Pressed') {
-            invoke('resize_window',{hide: isChatOpen, shortcut: false})
-            setIsChatOpen((prev) =>!prev)
-            console.log(isChatOpen);
-            
+            tempOpenState = !tempOpenState
+            invoke('resize_window',{hide: tempOpenState, shortcut: false})       
           }
         }); 
     },[])
     useEffect(() => {
         scrollToBottom()
     },[chatHistory])
+    useEffect(() => {
+        setIsChatOpen(tempOpenState)
+    },[tempOpenState])
     const generateBotResponse =async (history:Array<MessageItem>) => {
         const {base_url,key,model} = await getApiSetting()
         const requestOptions = {
