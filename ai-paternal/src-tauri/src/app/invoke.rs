@@ -12,7 +12,6 @@ pub async fn resize_window(window: tauri::Window, state: State<'_, Mutex<AppData
     }else{
         state.hide = hide;
     }
-    println!("{}",state.hide);
     if state.hide {
         let current = window.inner_position().expect("get window position error");
         state.max_postion = (current.x, current.y);

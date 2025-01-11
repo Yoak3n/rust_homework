@@ -22,7 +22,7 @@ export default function Settings() {
       model:apiSetting.model
     } 
     console.log(api);
-    
+    closeSettingWindow();
     invoke('modify_api',{baseUrl:apiSetting.base_url,key:apiSetting.key,model:apiSetting.model})
   }
   return(
