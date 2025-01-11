@@ -10,6 +10,17 @@
     "core:window:allow-set-resizable",
     "core:window:allow-set-size",
     "core:webview:allow-create-webview-window",
-    "core:window:allow-close"
+    "core:window:allow-close",
+    "fs:default",
+    {
+      "identifier": "fs:allow-exists",
+      "allow": [{ "path": "$APPDATA" }, { "path": "*" }]
+    },{
+      "identifier": "fs:allow-read",
+      "allow": [{ "path": "$APPDATA" }, { "path": "*" }]
+    },{
+      "identifier": "fs:allow-write",
+      "allow": [{ "path": "$APPDATA" }, { "path": "*" }]
+    }
   ]
 }

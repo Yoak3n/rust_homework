@@ -61,6 +61,7 @@ pub fn invoke_api(state: tauri::State<'_, Mutex<AppData>>) -> Result<(String,Str
 
 #[tauri::command]
 pub fn modify_api(state: tauri::State<'_, Mutex<AppData>>,base_url: String,key: String,model:String) -> Result<(), String> {
+    println!("invoke modify_api");
     let mut state = state.lock().expect("get state error");
     state.setting.update_api(crate::setting::API { base_url, key,model});
     Ok(())

@@ -47,6 +47,7 @@ impl Settings {
         data.insert("api.key".to_string(), serde_yaml::Value::String(self.api.key.clone()));
         data.insert("api.model".to_string(), serde_yaml::Value::String(self.api.model.clone()));
         let yaml_string = serde_yaml::to_string(&data).unwrap();
+        print!("{:?}",yaml_string);
         fp.write_all(yaml_string.as_bytes()).unwrap();
     }
 }

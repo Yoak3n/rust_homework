@@ -35,6 +35,7 @@ export default function Home() {
     useEffect(() => {
         setIsChatOpen(tempOpenState)
     },[tempOpenState])
+    const resetConversation = ()=>setChatHistory([])
     const generateBotResponse =async (history:Array<MessageItem>) => {
         const {base_url,key,model} = await getApiSetting()
         const requestOptions = {
@@ -77,7 +78,7 @@ export default function Home() {
                     <div className="chatbot-header" data-tauri-drag-region>
                         <div className="header-info">
                         <BotIcon />
-                        <h2 className="logo-text">Chatbot</h2>
+                        <button className="logo-text" onClick={resetConversation}>Chatbot</button>
                         </div>
                         <button className="material-symbols-rounded" onClick={() => setIsChatOpen(false)}>
                             keyboard_arrow_down

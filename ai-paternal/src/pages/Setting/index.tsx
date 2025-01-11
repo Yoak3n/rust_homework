@@ -16,12 +16,18 @@ export default function Settings() {
   },[])
   // useEffect第二个参数留空就会不停调用？NB！
   const saveApiSetting=()=>{
-    invoke('modify_api',{base_url:apiSetting.base_url,key:apiSetting.key,model:apiSetting.model})
-    closeSettingWindow()
+    const api:APISetting = {
+      base_url:apiSetting.base_url,
+      key:apiSetting.key,
+      model:apiSetting.model
+    } 
+    console.log(api);
+    
+    invoke('modify_api',{baseUrl:apiSetting.base_url,key:apiSetting.key,model:apiSetting.model})
   }
   return(
     <div className="settings">
-      <form action="#" className="settings-form" onSubmit={saveApiSetting}>
+      <form action="#" className="settings-form" >
         <div className="settings-form-api">
           <h2 className='item-title'>API设置</h2>
           <div className="form-item api-base_url">
@@ -50,7 +56,7 @@ export default function Settings() {
           </div>
         </div>
         <div className="settings-form-button">
-          <button type="submit">保存</button>
+          <button type="submit" onClick={saveApiSetting}>保存</button>
         </div>
       </form>
     </div>

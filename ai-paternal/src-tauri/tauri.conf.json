@@ -20,6 +20,18 @@
         "transparent": true,
         "alwaysOnTop": true,
         "center": true
+      },{
+        "title": "Setting",
+        "label": "setting",
+        "url": "setting",
+        "width": 520,
+        "height": 520,
+        "resizable": false,
+        "decorations": true,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "center": true,
+        "visible": false
       }
     ],
     "security": {
