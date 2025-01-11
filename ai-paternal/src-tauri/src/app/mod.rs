@@ -23,7 +23,7 @@ pub fn run() {
         Migration {
             version: 1,
             description: "create_initial_tables",
-            sql: "CREATE TABLE setting (key TEXT PRIMARY KEY UNIQUE,value TEXT);INSERT INTO setting (key,value) VALUES ('min_postion','(80,80)'),('max_postion','(520,720)');",
+            sql: "CREATE TABLE setting (key TEXT PRIMARY KEY UNIQUE,value TEXT);",
             kind: MigrationKind::Up,
         }
     ];

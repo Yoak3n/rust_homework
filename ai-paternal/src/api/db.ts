@@ -1,14 +1,18 @@
 import Database from '@tauri-apps/plugin-sql';
 // 初始化数据库
-export const DB = await Database.load('sqlite:ai.db');
+
+async function connectDB() {
+    return await Database.load('sqlite:ai.db');
+}
 initDB(); 
 async function initDB() {
+    const DB = await connectDB();
     DB.execute(`CREATE TABLE IF NOT EXISTS setting (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
     )`);
     const check:Array<SettingRecord>= await DB.select("SELECT key FROM setting")
-    if (check.length == 0) {
+    if (check.length == 0 || check.find((item) => item.key == 'base_url') == undefined) {
         await insertInitailSetting()
     }
 }
@@ -20,6 +24,7 @@ export interface SettingRecord {
 
 // 查询数据
 export async function querySetting() {
+    const DB = await connectDB();
     const result:Array<SettingRecord> =  await DB.select("SELECT * FROM setting")
     let api:APISetting = {base_url:"",key:"",model:""}
         if(result.length>0){
@@ -38,12 +43,14 @@ export async function querySetting() {
     return api
 }
 export async function querySingleSetting(key: string) {
+    const DB = await connectDB();
     const result:Array<SettingRecord> =  await DB.select("SELECT * FROM setting WHERE key = $1",[key])
     return result[0]
 }
 import type { APISetting } from '../types';
 // 插入数据
 export async function insertInitailSetting() {
+    const DB = await connectDB();
     const api :APISetting = {
         "base_url": "",
         "key": "",
@@ -59,6 +66,7 @@ export async function insertInitailSetting() {
 
 // 更新数据
 export async function updateAllSetting(api: APISetting) {
+    const DB = await connectDB();
     await DB.execute(`UPDATE setting SET value = 
         CASE key 
         WHEN $1 THEN $2
@@ -70,6 +78,7 @@ export async function updateAllSetting(api: APISetting) {
     
 }
 export async function updateSingleSetting(key: string, value: string) {
+    const DB = await connectDB();
     await DB.execute("UPDATE setting SET value = $1 WHERE key = $2",[value, key])
 }
 
