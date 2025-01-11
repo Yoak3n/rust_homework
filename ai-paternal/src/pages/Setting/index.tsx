@@ -1,8 +1,9 @@
 import { useState,useEffect } from 'react'
 import './index.css'
 import type { APISetting } from '../../types'
-import {getApiSetting,closeSettingWindow} from '../../utils/index'
-import {invoke} from '@tauri-apps/api/core'
+import {closeSettingWindow} from '../../utils/index'
+import {querySetting,updateAllSetting}from '../../api/db'
+// import {invoke} from '@tauri-apps/api/core'
 export default function Settings() {
   const [apiSetting, setApiSetting] = useState<APISetting>({
     base_url: '',
@@ -10,20 +11,19 @@ export default function Settings() {
     model: ''
   })
   useEffect(()=>{
-    getApiSetting().then(res=>{
-      setApiSetting(res)
-    })
+    querySetting().then((setting:APISetting)=>{
+      setApiSetting(setting)
+    }) 
   },[])
   // useEffect第二个参数留空就会不停调用？NB！
-  const saveApiSetting=()=>{
+  const saveApiSetting=async()=>{
     const api:APISetting = {
       base_url:apiSetting.base_url,
       key:apiSetting.key,
       model:apiSetting.model
     } 
-    console.log(api);
+    updateAllSetting(api)
     closeSettingWindow();
-    invoke('modify_api',{baseUrl:apiSetting.base_url,key:apiSetting.key,model:apiSetting.model})
   }
   return(
     <div className="settings">

@@ -115,8 +115,9 @@
     background-color: #f6f2ff;
     border-radius: 13px 13px 13px 3px;
 }
-.chatbot-body .system-error-message .message-text {
-    background-color: #f00;
+.chatbot-body .error-message .message-text {
+    color: #f00;
+    background-color: #f6f2ff;
     border-radius: 13px 13px 13px 3px;
 }
 .chatbot-body .user-message{

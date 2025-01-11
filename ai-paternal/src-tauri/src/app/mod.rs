@@ -17,13 +17,13 @@ use crate::setting::Settings;
 use tauri_plugin_sql::{Builder, Migration, MigrationKind};
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let setting = Settings::new().unwrap();
+    // let setting = Settings::new().unwrap();
     let migrations = vec![
         // Define your migrations here
         Migration {
             version: 1,
             description: "create_initial_tables",
-            sql: "CREATE TABLE setting (key TEXT PRIMARY KEY,value TEXT);",
+            sql: "CREATE TABLE setting (key TEXT PRIMARY KEY UNIQUE,value TEXT);INSERT INTO setting (key,value) VALUES ('min_postion','(80,80)'),('max_postion','(520,720)');",
             kind: MigrationKind::Up,
         }
     ];
@@ -36,7 +36,7 @@ pub fn run() {
             let mut state = state.lock().unwrap();
             state.min_postion = (80, 80);
             state.max_postion = (520, 720);
-            state.setting = setting;
+            // state.setting = setting;
             Ok(())
         })
         .plugin(Builder::new()
@@ -46,8 +46,7 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             invoke::resize_window,
-            invoke::invoke_api,
-            invoke::modify_api,
+            invoke::invoke_api
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

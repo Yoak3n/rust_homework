@@ -6,8 +6,7 @@ import ChatForm from "../../components/ChatForm";
 import type{MessageItem} from '../../types/index'
 import './index.css'
 import ChatMessage from "../../components/ChatMessage";
-import {getApiSetting} from '../../utils/index'
-
+import { querySetting } from "../../api/db";
 export default function Home() {
     const [chatHistory,setChatHistory] = useState<Array<MessageItem>>([])
     const [isChatOpen,setIsChatOpen] = useState(true)
@@ -37,7 +36,7 @@ export default function Home() {
     },[tempOpenState])
     const resetConversation = ()=>setChatHistory([])
     const generateBotResponse =async (history:Array<MessageItem>) => {
-        const {base_url,key,model} = await getApiSetting()
+        const {base_url,key,model} = await querySetting()
         const requestOptions = {
             method: 'POST',
             headers: {
