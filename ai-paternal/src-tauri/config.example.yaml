@@ -1,4 +1,0 @@
-api:
-  base_url: "https://api.example.com"
-  key: "your_api_key"
-  model: "your_model_name"

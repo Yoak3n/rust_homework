@@ -37,6 +37,10 @@ export default function Home() {
     const resetConversation = ()=>setChatHistory([])
     const generateBotResponse =async (history:Array<MessageItem>) => {
         const {base_url,key,model} = await querySetting()
+        if(!base_url || !key || !model || base_url === "" || key === "" || model === "") {
+            updateHistory({role:"system-error",content:"请先配置API密钥和模型",text:"请先配置API密钥和模型"})
+            return
+        }
         const requestOptions = {
             method: 'POST',
             headers: {
@@ -49,7 +53,13 @@ export default function Home() {
             })
         }
         try{
-            const res = await fetch(base_url, requestOptions)
+            let api_target = ""
+            if (base_url.endsWith('v1')){
+                api_target = `${base_url}/chat/completions`
+            }else{
+                api_target = base_url
+            }
+            const res = await fetch(api_target, requestOptions)
             const data = await res.json()
             if(!res.ok) throw new Error(res.statusText || "Something went wrong")
             const botAnswer:MessageItem = data.choices[0].message
