@@ -24,8 +24,6 @@ const ChatForm = (
         } 
         setChatHistory((prev:Array<MessageItem>) => [...prev, newMessage]);
         setTimeout(()=>{
-            // 虽然这个等待消息会被下面旧的history忽略，但是还是在外面再屏蔽一遍
-            setChatHistory((prev:Array<MessageItem>) => [...prev, {role:'assistant',text:'Thinking...',content:'Thinking...'}]);
             generateBotResponse([...chatHistory, newMessage]);
             // 组件内部没有更新history？
         },600)

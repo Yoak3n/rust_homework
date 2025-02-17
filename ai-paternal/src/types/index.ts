@@ -1,6 +1,7 @@
 export interface MessageItem {
     role: string;
     content?: string;
+    reasoning_content?:string;
     text: string;
 }
 
