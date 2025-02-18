@@ -1,4 +1,13 @@
 <script lang="ts" setup>
+import { computed, toRefs } from 'vue'
+const props = defineProps({
+    heigth:{
+        type: Number,
+        default: 30
+    }
+})
+const {heigth} = toRefs(props)
+const heightString  = computed(() => `${heigth.value}px`)
 import {window} from '@tauri-apps/api'
 
 const toggleFullscreen = () => {
@@ -31,17 +40,19 @@ const close = () => {
 </template>
 
 
-<style scoped>
+<style scoped lang="less">
 .header {
     position: fixed;
     top: 0;
     width: 100%;
-    height: 30px;
+    height: v-bind(heightString);
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: #fff;
+    background-color: #fff;
     box-shadow: 1px 0px 5px 0px rgba(3, 3, 3, 0.3);
+    z-index: 9999;
 }
 
 .title {
