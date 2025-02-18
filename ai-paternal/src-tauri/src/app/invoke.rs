@@ -4,7 +4,7 @@ use tauri::{PhysicalSize, Size,State,Position,PhysicalPosition};
 use super::{AppData, Settings};
 
 #[tauri::command]
-pub async fn resize_window(window: tauri::Window, state: State<'_, Mutex<AppData>>,hide: bool,shortcut:bool) -> Result<(), String> {
+pub async fn resize_window(window: tauri::Window, state: State<'_, Mutex<AppData>>,hide: bool,shortcut:bool) -> Result<bool, String> {
     let r: Result<(), tauri::Error>;
     let mut state = state.lock().unwrap();
     if shortcut {
@@ -44,7 +44,7 @@ pub async fn resize_window(window: tauri::Window, state: State<'_, Mutex<AppData
         let _ = window.set_position(Position::Physical(PhysicalPosition::new(state.min_postion.0 - (520-50)+20, state.min_postion.1-5)));
     };
     match r {
-        Ok(_) => return Ok(()),
+        Ok(_) => return Ok(state.hide),
         Err(e) => return Err(e.to_string()),
     }
 }

@@ -11,6 +11,7 @@ export default function Home() {
     const [chatHistory,setChatHistory] = useState<Array<MessageItem>>([])
     const [isChatOpen,setIsChatOpen] = useState(true)
     const bodyRef =  useRef<HTMLInputElement>(null);
+    let tempOpenState = true 
     // const updateHistory = (message:MessageItem) => {
     //     setChatHistory((prev:Array<MessageItem>)=>[...prev.filter((item) => item.content !== 'Thinking...'),message])
     // }
@@ -27,26 +28,32 @@ export default function Home() {
         })
 
     }
-    let tempOpenState = isChatOpen;
     const scrollToBottom = () => {
         if(bodyRef.current){
             bodyRef.current.scrollTo({top:bodyRef.current.scrollHeight,behavior:'smooth'})
         }
     }
     useEffect(() => {
-        register('CommandOrControl+Q', async(event: ShortcutEvent) => {
+        register('CommandOrControl+Q', (event: ShortcutEvent) => {
           if (event.state === 'Pressed') {
             tempOpenState = !tempOpenState
-            invoke('resize_window',{hide: tempOpenState, shortcut: false})       
-          }
+            console.log("shortcut pressed",tempOpenState);
+            
+            invoke('resize_window',{hide: tempOpenState, shortcut: false}).then((res) => {
+                console.log("invoke return",res);
+            })
+
+        }
         }); 
     },[])
     useEffect(() => {
         scrollToBottom()
     },[chatHistory])
     useEffect(() => {
+        console.log(tempOpenState);
         setIsChatOpen(tempOpenState)
     },[tempOpenState])
+    // ref不能作为其他hook的依赖
     const resetConversation = ()=>setChatHistory([])
 
     const generateBotResponseStream =async (history:Array<MessageItem>) => {
