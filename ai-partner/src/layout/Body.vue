@@ -22,8 +22,7 @@ const margin_top = computed(() => {
 .body{
     margin-top: v-bind(margin_top);
     width: 100%;
-    height: 100%;
-    padding: 0 20px;
+    height: calc(100vh - v-bind(margin_top));
     box-sizing: border-box;
 }
 </style>

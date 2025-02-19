@@ -65,23 +65,11 @@ h1 {
 
 input,
 button {
-  border: 1px solid transparent;
+  border: none;
   font-weight: 500;
   font-family: inherit;
   color: #0f0f0f;
   transition: border-color 0.25s;
-}
-
-button {
-  cursor: pointer;
-}
-
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
 }
 
 input,

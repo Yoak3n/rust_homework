@@ -1,7 +1,7 @@
 <template>
-    <div :class="`message ${message.role === 'assistant' ? 'bot' : message.role === 'system-error' ? 'error' : 'user'}-message`">
-        {message.role !=='user' && <BotIcon/>}
-        <p className="message-text">{{displayText}}</p>
+    <div :class="`message ${message.role === 'assistant' ? 'bot' : message.role === 'system-error' ? 'error' : 'user'}-message`">  
+        <Bot v-if="message.role==='assistant' || message.role === 'system-error'" />
+        <p class="message-text">{{displayText}}</p>
     </div>
 </template>
 
@@ -9,15 +9,24 @@
 import { ref, toRefs,onMounted,watch } from 'vue';
 import type{ PropType} from 'vue'
 import type { MessageItem } from '../../../types/index'
-
+import Bot from '../../Icon/Bot.vue'
 onMounted(()=>{
     savedCallback.value = ()=>{
+        // 检测定时器是否在运行，防止内存泄漏
+        console.log('running')
         if (index < message.value.content!.length){
                 index ++
                 displayText.value = message.value.content!.slice(0,index)
             }else{
                 enableRunning.value = false
             }
+    }
+    if (message.value.role === 'assistant'){
+        if (!enableRunning.value){
+            enableRunning.value = true
+        }
+    }else{
+        displayText.value = message.value.content!
     }
 })
 let index = 0;
@@ -33,11 +42,13 @@ const props = defineProps({
 
 let { message } = toRefs(props)
 watch(enableRunning,(n)=>{
-    if (message.value.role === 'assistant' ){
+    console.log("enableRunning",n);
+    
+    if (message.value.role !== 'assistant' ){
         displayText.value = message.value.content!
     }else{
         if (n){
-            timerRef.value = setInterval(savedCallback.value,100)
+            timerRef.value = setInterval(savedCallback.value,50)
         }else{
             clearInterval(timerRef.value!)
         }
@@ -69,8 +80,8 @@ watch(message,(n)=>{
     flex-shrink: 0;
     fill: #fff;
     border-radius: 50%;
-    margin-bottom: 2px;
-    align-self: flex-end;
+
+    align-self: flex-center;
 }
 
 .message .message-text{

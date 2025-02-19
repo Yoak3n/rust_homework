@@ -10,9 +10,14 @@ const {heigth} = toRefs(props)
 const heightString  = computed(() => `${heigth.value}px`)
 import {window} from '@tauri-apps/api'
 
-const toggleFullscreen = () => {
+const minimize = () => {
     let w = window.Window.getCurrent()
-    w.setFullscreen(true)
+    w.minimize()
+}
+const toggleFullscreen = async() => {
+    let w = window.Window.getCurrent()
+    const isFullscreen = await w.isFullscreen()
+    w.setFullscreen(!isFullscreen)
 }
 const close = () => {
     let w = window.Window.getCurrent()
@@ -26,7 +31,7 @@ const close = () => {
             <img src="../assets/tauri.svg" alt="tauri" width="20" height="20">
         </div>
         <div class="option">
-            <button>
+            <button @click="minimize">
                 <img src="https://api.iconify.design/mdi:window-minimize.svg" alt="minimize" />
             </button>
             <button @click="toggleFullscreen"> 
@@ -69,11 +74,15 @@ const close = () => {
     height: 100%;
     display: flex;
     button {
+        cursor: pointer;
         background-color: transparent;
         border-radius: 5px;
         height: 100%;
         width: 30px;
         padding: auto;
+        &:hover{
+            background-color: #eee;
+        }
         img{
             line-height: 30px;
             background: transparent;
