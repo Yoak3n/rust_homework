@@ -1,7 +1,3 @@
-pub enum WindowState {
-    
-}
+pub enum WindowState {}
 
-pub struct AppState{
-
-}
+pub struct AppState {}
