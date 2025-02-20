@@ -1,15 +1,19 @@
 <template>
     <div :class="`message ${message.role === 'assistant' ? 'bot' : message.role === 'system-error' ? 'error' : 'user'}-message`">  
         <Bot v-if="message.role==='assistant' || message.role === 'system-error'" />
-        <p class="message-text">{{displayText}}</p>
+        <p class="message-text">
+            <MarkdownRender :source="displayText"/>
+        </p>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, toRefs,onMounted,watch } from 'vue';
+import { ref, toRefs,onMounted,watch, onBeforeUnmount } from 'vue';
 import type{ PropType} from 'vue'
+import MarkdownRender from '../../Markdown/index.vue'
 import type { MessageItem } from '../../../types/index'
 import Bot from '../../Icon/Bot.vue'
+import emitter from '../../../bus';
 onMounted(()=>{
     savedCallback.value = ()=>{
         // 检测定时器是否在运行，防止内存泄漏
@@ -28,6 +32,17 @@ onMounted(()=>{
     }else{
         displayText.value = message.value.content!
     }
+    emitter.on('updateHistory',(res:any)=>{
+        if (res.role === 'assistant'){
+            if (!enableRunning.value){
+                enableRunning.value = true
+            }
+        }
+    })
+})
+onBeforeUnmount(()=>{
+    clearInterval(timerRef.value!)
+    emitter.off('updateHistory')
 })
 let index = 0;
 let displayText = ref<string>('')
@@ -43,7 +58,6 @@ const props = defineProps({
 let { message } = toRefs(props)
 watch(enableRunning,(n)=>{
     console.log("enableRunning",n);
-    
     if (message.value.role !== 'assistant' ){
         displayText.value = message.value.content!
     }else{
@@ -56,15 +70,7 @@ watch(enableRunning,(n)=>{
     return ()=>clearInterval(timerRef.value!)
 })
 
-watch(message,(n)=>{
-    if (n.role === 'assistant'){
-        if (!enableRunning.value){
-            enableRunning.value = true
-        }else{
-            displayText.value = n.content!
-        }
-    }
-})
+
 </script>
 
 <style scoped lang="less">
@@ -81,19 +87,20 @@ watch(message,(n)=>{
     fill: #fff;
     border-radius: 50%;
 
-    align-self: flex-center;
+    align-self: flex-start;
 }
 
 .message .message-text{
     padding: 12px 16px;
     max-width: 75%;
     word-wrap: break-word;
-    white-space: pre-line;
+
     font-size: 0.9rem;
 }
 .bot-message .message-text {
     background-color: #f6f2ff;
     border-radius: 13px 13px 13px 3px;
+    white-space: normal;
 }
 .error-message .message-text {
     color: #f00;
@@ -108,5 +115,8 @@ watch(message,(n)=>{
     color: #fff;
     background-color: #6d4fc2;
     border-radius: 13px 13px 3px 13px;
+    div{
+        white-space: normal;
+    }
 }
 </style>

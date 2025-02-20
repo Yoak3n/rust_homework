@@ -6,6 +6,8 @@ async function connectDB() {
 }
 initDB();
 async function initDB() {
+    console.log("initDB");
+    
     const DB = await connectDB();
     DB.execute(`CREATE TABLE IF NOT EXISTS setting (
         key TEXT PRIMARY KEY,
@@ -24,6 +26,8 @@ export interface SettingRecord {
 
 // 查询数据
 export async function querySetting() {
+    console.log("querySetting");
+    
     const DB = await connectDB();
     const result: Array<SettingRecord> = await DB.select("SELECT * FROM setting")
     let api: APISetting = { base_url: "", key: "", model: "" }

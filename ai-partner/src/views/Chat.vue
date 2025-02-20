@@ -53,8 +53,8 @@ const generateBotResponseStream = async (history: Array<MessageItem>) => {
       api_target = `${base_url}/chat/completions`
     } else {
       api_target = base_url
-
     }
+    if (!api_target.startsWith(`http[s]?://`)) {}
     const res = await fetch(api_target, requestOptions)
     if (!res.ok) throw new Error(res.statusText || "Something went wrong")
     const reader = res.body!.getReader();
@@ -94,6 +94,7 @@ const updateHistoryStream = (message: MessageItem) => {
   }
   messages.value = newHistory
   emitter.emit('scrollToBottom')
+  emitter.emit('updateHistory', message)
 }
 
 

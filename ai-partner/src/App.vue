@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { invoke } from "@tauri-apps/api/core";
 import Layout from './layout/index.vue'
-const greetMsg = ref("");
-const name = ref("");
+
 
 
 </script>
@@ -38,7 +35,6 @@ const name = ref("");
   display: flex;
   flex-direction: column;
   justify-content: center;
-  text-align: center;
 }
 
 
@@ -77,6 +73,22 @@ button {
   outline: none;
 }
 
+.copy-button {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  padding: 0.25em 0.5em;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8em;
+  color: #333;
+}
+
+.copy-button:hover {
+  background-color: #eaeaea;
+}
 
 @media (prefers-color-scheme: dark) {
   :root {
