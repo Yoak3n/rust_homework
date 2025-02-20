@@ -71,20 +71,27 @@ const menuOptions: Array<MenuOption> = [
         ,
         key: 'Chat',
         icon: renderIcon(Message)
-    },
-    {
-        label: 'Table',
-        key: 'table'
     }
 ]
 </script>
 
-<style scoped lang="less">
+<style  lang="less">
 .home-wrapper {
     height: 100%;
 
     .n-layout {
         height: 100%;
     }
+    .n-menu.n-menu--collapsed .n-menu-item-content.n-menu-item-content--selected::before{
+        background-color: rgba(74,144,226, 0.2) !important;
+    }
+    .n-menu .n-menu-item-content.n-menu-item-content--selected::before{
+        background-color: rgba(74,144,226, 0.2) !important;
+    }
+    .n-menu .n-menu-item-content.n-menu-item-content--selected .n-menu-item-content-header a{
+        color: #4a90e2 !important;
+    }
+
+
 }
 </style>

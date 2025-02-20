@@ -56,6 +56,10 @@ div{
 
 }
 
+p{
+    margin-block-start: 0;
+    margin-block-end: 0;
+}
 pre code {
     display: block;
     padding: 15px;
@@ -67,6 +71,7 @@ pre code {
     font-size: 14px;
     line-height: 1.5;
     color: #333;
+    
 }
 
 

@@ -1,17 +1,26 @@
 <script lang="ts" setup>
-import { nextTick, onMounted, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import ChatMessage from '../ChatMessage/index.vue'
 import type { MessageItem } from '../../../types/index'
 import { toRefs } from 'vue';
 let chatBody = ref<HTMLInputElement | null>(null)
+import { querySetting } from '../../../api/db';
 import emitter from '../../../bus';
 onMounted(() => {
-  console.log('inputRef:', chatBody.value, typeof chatBody.value); // 打印出绑定的 DOM 元素
+  querySetting().then((res) => {
+    if (res) {
+      model_name.value = res.model
+    }
+  })
   emitter.on('scrollToBottom', () => {
     nextTick(() => chatBody.value?.scrollTo({ top: chatBody.value.scrollHeight - 500, behavior: 'smooth' }))
-
   })
 });
+onBeforeUnmount(() => {
+  emitter.off('scrollToBottom')
+})
+
+let model_name = ref('')
 const props = defineProps(
   {
     messages: {
@@ -29,6 +38,7 @@ let { messages } = toRefs(props)
 </script>
 <template>
   <div class="chat-board" ref="chatBody">
+    <h1>{{model_name}}</h1>
     <div class="chat-body">
       <ChatMessage v-for="message in messages" :message="message" />
     </div>

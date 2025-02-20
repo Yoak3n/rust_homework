@@ -4,13 +4,10 @@ import { NIcon } from 'naive-ui';
 import type {MessageItem} from '../types/index'
 import { computed, ref } from 'vue';
 
-let messages = ref<Array<MessageItem>>([
-  {
-    role:'assistant',
-    content:'Hello, how can I help you today?',
-    text: 'Hello, how can I help you today?',
-  }
-])
+const defaultMessages:Array<MessageItem> = [
+  {role:'assistant', content:'你好，我是你的助手，有什么可以帮助你的吗？', text:'你好，我是你的助手，有什么可以帮助你的吗？'}
+]
+let messages = ref<Array<MessageItem>>(defaultMessages)
 let input = ref<string>('')
 import emitter from '../bus';
 const setMessage = (mi:MessageItem) => {
@@ -97,7 +94,9 @@ const updateHistoryStream = (message: MessageItem) => {
   emitter.emit('updateHistory', message)
 }
 
-
+const resetHistory = () => {
+  messages.value = defaultMessages
+}
 
 
 
@@ -109,10 +108,19 @@ const updateHistoryStream = (message: MessageItem) => {
       e.preventDefault()
       submitUserMessage()
     }">
-      <input type="text" placeholder="Type a message..." v-model="input" />
-      <button type="submit" v-on:invalid="input.trim() == ''">
+      <input type="text" placeholder="Type a message..." v-model="input"  required minlength="1"/>
+      <button class="reset-btn" @click="resetHistory">
+        <svg t="1740044712308" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2601" width="24" height="24">
+          <path d="M808 602.9c-23.6 164.2-181.8 285.5-358.7 248.3C336.9 827.6 245.6 736.8 222 624.4c-40.3-192 92-361.8 290.4-361.8v99.2l248-148.8-248-148.8v99.2c-248 0-438 222.4-388.6 476.5 30.1 154.7 155 279.4 309.7 309.5C668 995 875.6 833.9 906.2 616.1c4.2-29.6-19.7-55.8-49.5-55.8h0.1c-24.7 0-45.3 18.2-48.8 42.6z" p-id="2602" fill="#ffffff">
+          </path>
+        </svg>
+      </button>
+      <button type="submit" class="submit-btn" >
         <n-icon :size="24">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
         </n-icon>
       </button>
     </form>
@@ -145,20 +153,23 @@ const updateHistoryStream = (message: MessageItem) => {
     background-color: #F7F8FC;
     padding: 0 17px;
   }
-  &:valid ~ button{
-    display: block;
-  
-  }
-  &:focus-within{
-    outline: 2px solid #6d4fc2;
-  }
   button{
     height: v-bind(inputHeigthString);
-    width: 10%;
     border-radius: 5px;
+    padding:10px 15px;
+    color: #fff;
     background-color: #6d4fc2;
     cursor: pointer;
-    color: #fff;
+    &.reset-btn{
+      &:hover{
+        background-color: #593bab;
+      }
+    }
+  }
+  &:valid button{
+    display: block;
+    background-color: #6d4fc2;
+    cursor: pointer;
     &:hover{
       background-color: #593bab;
       border: none;
@@ -167,6 +178,13 @@ const updateHistoryStream = (message: MessageItem) => {
     &:active{
       border: none;
     }
+  }
+  &:invalid  .submit-btn{
+    background-color: gray;
+    cursor: not-allowed;
+  }
+  &:focus-within{
+    outline: 2px solid #6d4fc2;
   }
 }
 </style>
