@@ -57,7 +57,6 @@ const props = defineProps({
 
 let { message } = toRefs(props)
 watch(enableRunning,(n)=>{
-    console.log("enableRunning",n);
     if (message.value.role !== 'assistant' ){
         displayText.value = message.value.content!
     }else{

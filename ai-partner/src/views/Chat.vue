@@ -17,11 +17,12 @@ const setMessage = (mi:MessageItem) => {
 
 const inputHeigth = 50;
 const inputHeigthString = computed(() => `${inputHeigth}px`)
+
 const submitUserMessage = () => {
   if(input.value.trim() == '') return
   const m:MessageItem = {role:'user', content:input.value, text:input.value}
-  input.value = ''
   setMessage(m)
+  input.value = ''
   generateBotResponseStream(messages.value)
 }
 
@@ -84,9 +85,11 @@ const generateBotResponseStream = async (history: Array<MessageItem>) => {
 }
 const updateHistoryStream = (message: MessageItem) => {
   let newHistory: Array<MessageItem> = []
-  if (messages.value[messages.value.length - 1].role === 'assistant') {
+  if (messages.value[messages.value.length - 1].role === 'assistant' && message.role === 'assistant') {
+    console.log('replace');
     newHistory = [...messages.value.slice(0, messages.value.length - 1), message]
   }else{
+    console.log('append');
     newHistory = [...messages.value,message]
   }
   messages.value = newHistory
@@ -106,6 +109,7 @@ const resetHistory = () => {
     <ChatForm :messages="messages"/>
     <form class="chat-input" @submit="(e) =>{
       e.preventDefault()
+      console.log(messages);
       submitUserMessage()
     }">
       <input type="text" placeholder="Type a message..." v-model="input"  required minlength="1"/>
