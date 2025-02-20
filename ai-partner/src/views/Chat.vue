@@ -70,6 +70,7 @@ const generateBotResponseStream = async (history: Array<MessageItem>) => {
           if (key === 'choices' && !value[0]["finish_reason"]) {
             const answer = value[0].delta.content
             newAnswer.content += answer
+            newAnswer.text += answer
             updateHistoryStream(newAnswer)
           }
           return value;
@@ -86,19 +87,18 @@ const generateBotResponseStream = async (history: Array<MessageItem>) => {
 const updateHistoryStream = (message: MessageItem) => {
   let newHistory: Array<MessageItem> = []
   if (messages.value[messages.value.length - 1].role === 'assistant' && message.role === 'assistant') {
-    console.log('replace');
     newHistory = [...messages.value.slice(0, messages.value.length - 1), message]
+    messages.value = newHistory
   }else{
-    console.log('append');
-    newHistory = [...messages.value,message]
+    messages.value.push(message)
   }
-  messages.value = newHistory
+
   emitter.emit('scrollToBottom')
   emitter.emit('updateHistory', message)
 }
 
 const resetHistory = () => {
-  messages.value = defaultMessages
+  messages.value = [defaultMessages[0]]
 }
 
 
@@ -109,11 +109,10 @@ const resetHistory = () => {
     <ChatForm :messages="messages"/>
     <form class="chat-input" @submit="(e) =>{
       e.preventDefault()
-      console.log(messages);
       submitUserMessage()
     }">
       <input type="text" placeholder="Type a message..." v-model="input"  required minlength="1"/>
-      <button class="reset-btn" @click="resetHistory">
+      <button type="button" class="reset-btn" @click="resetHistory">
         <svg t="1740044712308" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2601" width="24" height="24">
           <path d="M808 602.9c-23.6 164.2-181.8 285.5-358.7 248.3C336.9 827.6 245.6 736.8 222 624.4c-40.3-192 92-361.8 290.4-361.8v99.2l248-148.8-248-148.8v99.2c-248 0-438 222.4-388.6 476.5 30.1 154.7 155 279.4 309.7 309.5C668 995 875.6 833.9 906.2 616.1c4.2-29.6-19.7-55.8-49.5-55.8h0.1c-24.7 0-45.3 18.2-48.8 42.6z" p-id="2602" fill="#ffffff">
           </path>
