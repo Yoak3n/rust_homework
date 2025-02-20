@@ -37,7 +37,6 @@ let { messages } = toRefs(props)
 </script>
 <template>
   <div class="chat-board" ref="chatBody">
-    {{ messages }}
     <h1>{{model_name}}</h1>
     <div class="chat-body">
       <ChatMessage v-for="message in messages" :message="message" />
