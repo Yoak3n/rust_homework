@@ -7,4 +7,10 @@ declare module "*.vue" {
 }
 
 declare module 'markdown-it'
-declare module 'markdown-it-emoji'
+
+declare interface Window{
+  $loadingBar:LoadingBarInst
+  $dialog:DialogApiInjection
+  $message:MessageApiInjection
+  $notification:NotificationApiInjection
+}

@@ -53,9 +53,9 @@ import { ref,onMounted } from 'vue';
 import { NForm, NFormItem, NInput, NButton, NIcon } from 'naive-ui';
 import type { APISetting } from '../types';
 import {updateAllSetting,querySetting} from '../api/db'
-
+import { useRouter } from 'vue-router';
 let model = ref<APISetting|null>({base_url: '', key: '', model: ''});
-
+const $router = useRouter();
 onMounted(async()=>{
     const s = await querySetting();
     if(s){
@@ -67,13 +67,14 @@ const saveSetting = ()=>{
     if(model.value == null) return;
     const s:APISetting = model.value;
     updateAllSetting(s)
+    window.$message.success('保存成功');
+    $router.push('/chat');
 }
 </script>
 
 <style scoped lang="less">
 .setting-wrapper {
     width: 100%;
-    height: 100%;
     display: flex;
     justify-content: start;
     align-items: start;
