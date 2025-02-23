@@ -62,8 +62,8 @@ let props = defineProps(
 <style lang="less" scoped>
 .chat-board {
   width: 100%;
-  height: calc(100vh - 100px);
-  margin-bottom: 50px;
+  height: calc(100vh - 150px);
+  margin-bottom: 100px;
   position: relative;
 
   scrollbar-width: thin;

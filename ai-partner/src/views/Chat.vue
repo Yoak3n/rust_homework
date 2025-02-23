@@ -178,11 +178,13 @@ const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)
     width: 90%;
     border-radius: 5px;
     background-color: #F7F8FC;
+    line-height: 50px;
     padding: 0 17px;
     overflow: auto; /* 允许滚动 */
     resize: none; /* 禁用调整大小手柄 */
     scrollbar-width: none; /* 隐藏滚动条（Firefox） */
     -ms-overflow-style: none; /* 隐藏滚动条（IE/Edge） */
+    position: relative; 
   }
   button{
     height: v-bind(inputHeigthString);
