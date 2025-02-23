@@ -2,38 +2,41 @@
     <div :class="`message ${message.role === 'assistant' ? 'bot' : message.role === 'system-error' ? 'error' : 'user'}-message`">  
         <Bot v-if="message.role==='assistant' || message.role === 'system-error'" />
         <p class="message-text">
-            <MarkdownRender :source="displayText"/>
+            <MarkdownRender :source="displayText" v-if="smoothing" />
+            <MarkdownRender :source="message.content!" v-else class="native-render"/>
         </p>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, toRefs,onMounted,watch, onBeforeUnmount } from 'vue';
+import { ref,onMounted,watch, onBeforeUnmount } from 'vue';
 import type{ PropType} from 'vue'
 import MarkdownRender from '../../Markdown/index.vue'
 import type { MessageItem } from '../../../types/index'
 import Bot from '../../Icon/Bot.vue'
 import emitter from '../../../bus';
-onMounted(()=>{
+
+onMounted(async()=>{
     savedCallback.value = ()=>{
         // 检测定时器是否在运行，防止内存泄漏
-        console.log('running')
-        if (index <= message.value.content!.length){
-                displayText.value += message.value.content!.charAt(index) 
+        console.log('markdown render running')
+        if (index <= props.message.content!.length){
+                displayText.value += props.message.content!.charAt(index) 
                 index ++
             }else{
                 enableRunning.value = false
             }
     }
-    if (message.value.role === 'assistant'){
+    if (props.message.role === 'assistant' && props.smoothing){
         if (!enableRunning.value){
             enableRunning.value = true
         }
     }else{
-        displayText.value = message.value.content!
+        displayText.value = props.message.content!
+        messageText.value = props.message.content!
     }
     emitter.on('updateHistory',(res:any)=>{
-        if (res.role === 'assistant'){
+        if (res.role === 'assistant'){      
             if (!enableRunning.value){
                 enableRunning.value = true
             }
@@ -46,6 +49,7 @@ onBeforeUnmount(()=>{
 })
 let index = 0;
 let displayText = ref<string>('')
+let messageText = ref<string>('')
 let timerRef = ref<number|null>(null)
 let savedCallback = ref<Function>(()=>{})
 let enableRunning = ref<boolean>(false)
@@ -53,18 +57,29 @@ const props = defineProps({
     message: {
         type: Object as PropType<MessageItem>,
         required: true
-}})
+    },
+    smoothing: {
+        type: Boolean,
+        default: false
+    }
+})
 
-let { message } = toRefs(props)
+
 watch(enableRunning,(n)=>{
-    if (message.value.role !== 'assistant' ){
-        displayText.value = message.value.content!
+    if (props.message.role !== 'assistant' ){
+        displayText.value = props.message.content!
+        
     }else{
-        if (n){
-            timerRef.value = setInterval(savedCallback.value,50)
+        if (props.smoothing){
+            if (n){
+                timerRef.value = setInterval(savedCallback.value,50)
+            }else{
+                clearInterval(timerRef.value!)
+            }
         }else{
-            clearInterval(timerRef.value!)
+            displayText.value = props.message.content!
         }
+
     }
     return ()=>clearInterval(timerRef.value!)
 })

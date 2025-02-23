@@ -1,45 +1,51 @@
 <script lang="ts" setup>
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { nextTick,  onMounted, ref,onUnmounted, toRef } from 'vue'
 import ChatMessage from '../ChatMessage/index.vue'
 import type { MessageItem } from '../../../types/index'
-import { toRefs } from 'vue';
-let chatBody = ref<HTMLInputElement | null>(null)
-import { querySetting } from '../../../api/db';
 import emitter from '../../../bus';
+let chatBody = ref<HTMLInputElement | null>(null)
+
 onMounted(() => {
-  querySetting().then((res) => {
-    if (res) {
-      model_name.value = res.model
-    }
-  })
-  emitter.on('scrollToBottom', () => {
-    nextTick(() => chatBody.value?.scrollTo({ top: chatBody.value.scrollHeight - 500, behavior: 'smooth' }))
-  })
+  emitter.on('scrollToBottom', ()=>{
+    scrollToBottom()
+})
 });
-onBeforeUnmount(() => {
+onUnmounted(() => {
   emitter.off('scrollToBottom')
 })
 
-let model_name = ref('')
-const props = defineProps(
+
+
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (chatBody.value) {
+      chatBody.value.scrollTo({ top: chatBody.value.scrollHeight, behavior: 'smooth' });
+    }
+  });
+};
+let props = defineProps(
   {
     messages: {
       type: Array<MessageItem>
+    },
+    smoothing:{
+      type:Boolean,
+      default:false
+    },
+    model:{
+      type:String,
+      default:''
     }
   }
 )
-
-let { messages } = toRefs(props)
-
-
-
-
+let ms= toRef(props.messages)
 </script>
 <template>
   <div class="chat-board" ref="chatBody">
-    <h1>{{model_name}}</h1>
+    {{ ms }}
+    <h1>{{model}}</h1>
     <div class="chat-body">
-      <ChatMessage v-for="message in messages" :message="message" />
+      <ChatMessage v-for="message in ms" :message="message" :smoothing="smoothing" :key="message.timestamp"/>
     </div>
   </div>
 </template>
@@ -62,6 +68,11 @@ let { messages } = toRefs(props)
     flex-direction: column;
     padding: 0 50px;
     gap: 20px;
+  }
+  @media screen and (max-width: 768px) {
+    .chat-body{
+      padding:0 ;
+    }
   }
 }
 </style>

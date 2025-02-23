@@ -20,20 +20,22 @@ pub fn run() {
                 use tauri_plugin_global_shortcut::{Code, Modifiers,ShortcutState};
 
                 app.handle().plugin(
-                    tauri_plugin_global_shortcut::Builder::new()
-                    .with_shortcuts(["alt+n","alt+1"])?
-                    .with_handler( |app, shortcut,event| {
-                        if event.state== ShortcutState::Pressed{
-                            if shortcut.matches(Modifiers::ALT, Code::KeyN) {
-                                let _ = app.emit("dialog", "1");
-                            }
-                            if shortcut.matches(Modifiers::ALT, Code::Digit1) {
-                                let _ = app.emit("dialog", "1");
-                            }
+                    {
+                        if let Ok(builder) = tauri_plugin_global_shortcut::Builder::new().with_shortcuts(["alt+n","alt+1"]){
+                            builder.with_handler( |app, shortcut,event| {
+                                if event.state== ShortcutState::Pressed{
+                                    if shortcut.matches(Modifiers::ALT, Code::KeyN) {
+                                        let _ = app.emit("dialog", "1");
+                                    }
+                                    if shortcut.matches(Modifiers::ALT, Code::Digit1) {
+                                        let _ = app.emit("dialog", "1");
+                                    }
+                                }
+                            }).build()
+                        }else{
+                            tauri_plugin_global_shortcut::Builder::new().build()
                         }
-  
-                    })
-                    .build(),
+                    }
                 )?;
 
                 app.listen("dialog", |event|{ 

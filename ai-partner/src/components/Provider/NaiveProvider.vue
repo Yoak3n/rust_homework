@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineComponent, h } from 'vue'
+import { defineComponent, h, onMounted, onUnmounted } from 'vue'
 import {
   NDialogProvider,
   NLoadingBarProvider,
@@ -23,7 +23,20 @@ const NaiveProviderContent = defineComponent({
   name: 'NaiveProviderContent',
   setup() {
     registerNaiveTools()
-  },
+    const disableRightClick = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    // 在组件挂载时添加事件监听器
+    onMounted(() => {
+      document.addEventListener('contextmenu', disableRightClick);
+    });
+
+    // 在组件卸载时移除事件监听器
+    onUnmounted(() => {
+      document.removeEventListener('contextmenu', disableRightClick);
+    });
+    },
   render() {
     return h('div')
   },

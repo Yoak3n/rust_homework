@@ -43,3 +43,44 @@ export  const getApiSetting= async():Promise<APISetting>=>{
     }
     return {base_url:'',key:'',model:''}
 }
+
+type DebounceFunction<T extends any[]> = (...args: T) => void;
+
+export function debounce<T extends any[]>(fn: DebounceFunction<T>, delay: number): DebounceFunction<T> {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  return (...args: T) => {
+    if (timer) {
+      clearTimeout(timer);
+    }
+    timer = setTimeout(() => {
+      fn(...args);
+    }, delay);
+  };
+}
+
+export function throttle<T extends (...args: any[]) => void>(
+    func: T,
+    wait: number
+  ): (...args: Parameters<T>) => void {
+    let lastExecTime = 0; // 上次执行的时间戳
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  
+    return (...args: Parameters<T>) => {
+      const now = Date.now();
+      const timeSinceLastExec = now - lastExecTime;
+  
+      // 如果距离上次执行的时间超过 wait，立即执行
+      if (timeSinceLastExec >= wait) {
+        lastExecTime = now;
+        func(...args);
+      } else if (!timeoutId) {
+        // 否则，设置一个定时器，在剩余时间后执行
+        timeoutId = setTimeout(() => {
+          lastExecTime = Date.now();
+          func(...args);
+          timeoutId = null;
+        }, wait - timeSinceLastExec);
+      }
+    };
+  }

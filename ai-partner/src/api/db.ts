@@ -25,62 +25,76 @@ export interface SettingRecord {
 }
 
 // 查询数据
-export async function querySetting() {
-    console.log("querySetting");
-    
+export async function querySetting() :Promise<AppSetting>{
     const DB = await connectDB();
     const result: Array<SettingRecord> = await DB.select("SELECT * FROM setting")
-    let api: APISetting = { base_url: "", key: "", model: "" }
+    let app: AppSetting = { base_url: "", key: "", model: "" ,smoothing:false}
     if (result.length > 0) {
         result.forEach((item) => {
             if (item.key == 'base_url') {
-                item.value = item.value.replace(/\/$/, "")
-                api.base_url = item.value
+                item.value = (item.value as string).replace(/\/$/, "")
+                app.base_url = item.value
             }
             if (item.key == 'key') {
-                api.key = item.value
+                app.key = (item.value as string)
             }
             if (item.key == 'model') {
-                api.model = item.value
+                app.model = (item.value as string)
+            }
+            if (item.key == 'smoothing') {
+                if (item.value == 'true') {
+                    app.smoothing = true
+                }else{
+                    app.smoothing = false
+                }
             }
         })
     }
-    return api
+    console.log("querySetting:",app);
+    return app
 }
 export async function querySingleSetting(key: string) {
     const DB = await connectDB();
     const result: Array<SettingRecord> = await DB.select("SELECT * FROM setting WHERE key = $1", [key])
-    return result[0]
+    if (result.length <= 0) return null
+    console.log(result);
+    
+    
 }
-import type { APISetting } from '../types';
+import type { AppSetting } from '../types';
 // 插入数据
 export async function insertInitailSetting() {
     const DB = await connectDB();
-    const api: APISetting = {
+    const app: AppSetting = {
         "base_url": "",
         "key": "",
         "model": "",
+        "smoothing":false
     }
-    for (const key in api) {
-        if (api.hasOwnProperty(key)) {
-            await DB.execute("INSERT INTO setting (key, value) VALUES ($1, $2)", [key, api[key as keyof APISetting]])
+    for (const key in app) {
+        if (app.hasOwnProperty(key)) {
+            await DB.execute("INSERT INTO setting (key, value) VALUES ($1, $2)", [key, app[key as keyof AppSetting].toString()])
         }
     }
     return
 }
 
 // 更新数据
-export async function updateAllSetting(api: APISetting) {
+export async function updateAllSetting(app: AppSetting) {
     const DB = await connectDB();
     await DB.execute(`UPDATE setting SET value = 
         CASE key 
         WHEN $1 THEN $2
         WHEN $3 THEN $4
         WHEN $5 THEN $6
+        WHEN $7 THEN $8
         ELSE ''
         END
-        WHERE key IN($1, $3, $5)`, ["base_url", api.base_url, "key", api.key, "model", api.model])
-
+        WHERE key IN($1, $3, $5, $7)`, [
+        "base_url", app.base_url,
+        "key", app.key, 
+        "model", app.model, 
+        "smoothing", app.smoothing.toString()])
 }
 export async function updateSingleSetting(key: string, value: string) {
     const DB = await connectDB();

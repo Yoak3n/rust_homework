@@ -42,6 +42,9 @@
                 <n-input placeholder="请输入模型名称"  v-model:value="model!.model"/>
             </n-form-item>
             <n-form-item>
+                <n-switch v-model:value="model!.smoothing" />
+            </n-form-item>
+            <n-form-item>
                 <n-button type="primary" style="margin: 0 auto;width:20%" @click="saveSetting">确定</n-button>
             </n-form-item>
         </n-form>
@@ -50,11 +53,11 @@
 
 <script lang="ts" setup>
 import { ref,onMounted } from 'vue';
-import { NForm, NFormItem, NInput, NButton, NIcon } from 'naive-ui';
-import type { APISetting } from '../types';
+import { NForm, NFormItem, NInput, NButton, NIcon,NSwitch } from 'naive-ui';
+import type { AppSetting } from '../types';
 import {updateAllSetting,querySetting} from '../api/db'
 import { useRouter } from 'vue-router';
-let model = ref<APISetting|null>({base_url: '', key: '', model: ''});
+let model = ref<AppSetting|null>({base_url: '', key: '', model: '',smoothing:false});
 const $router = useRouter();
 onMounted(async()=>{
     const s = await querySetting();
@@ -65,7 +68,8 @@ onMounted(async()=>{
 
 const saveSetting = ()=>{
     if(model.value == null) return;
-    const s:APISetting = model.value;
+    const s:AppSetting = model.value;
+    console.log(s);
     updateAllSetting(s)
     window.$message.success('保存成功');
     $router.push('/chat');
@@ -80,4 +84,9 @@ const saveSetting = ()=>{
     align-items: start;
     margin: 5rem 0 0 5rem;
 }
+@media screen and (max-width: 768px) {
+    .setting-wrapper{
+      margin:5rem 0 ;
+    }
+  }
 </style>
