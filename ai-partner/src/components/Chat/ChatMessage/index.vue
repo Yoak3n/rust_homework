@@ -2,7 +2,7 @@
     <div :class="`message ${message.role === 'assistant' ? 'bot' : message.role === 'system-error' ? 'error' : 'user'}-message`">  
         <Bot v-if="message.role==='assistant' || message.role === 'system-error'" />
         <p class="message-text">
-            <MarkdownRender :source="displayText" v-if="smoothing" />
+            <MarkdownRender :source="displayText" v-if="smoothing" class="smoothing-render" />
             <MarkdownRender :source="message.content!" v-else class="native-render"/>
         </p>
     </div>
@@ -33,23 +33,27 @@ onMounted(async()=>{
         }
     }else{
         displayText.value = props.message.content!
-        messageText.value = props.message.content!
     }
     emitter.on('updateHistory',(res:any)=>{
-        if (res.role === 'assistant'){      
-            if (!enableRunning.value){
-                enableRunning.value = true
+        if (!props.smoothing){
+            if (res.role === 'assistant'){      
+                if (!enableRunning.value){
+                    enableRunning.value = true
+                }
             }
+        }else{
+            displayText.value = props.message.content!
         }
+
     })
 })
 onBeforeUnmount(()=>{
     clearInterval(timerRef.value!)
     emitter.off('updateHistory')
 })
+
 let index = 0;
 let displayText = ref<string>('')
-let messageText = ref<string>('')
 let timerRef = ref<number|null>(null)
 let savedCallback = ref<Function>(()=>{})
 let enableRunning = ref<boolean>(false)
@@ -83,7 +87,14 @@ watch(enableRunning,(n)=>{
     }
     return ()=>clearInterval(timerRef.value!)
 })
-
+// watch(
+//     ()=>props.message,
+//     (n)=>{
+//         displayText.value = n.content!
+//     },{
+//         deep: true
+//     }
+// )
 
 </script>
 

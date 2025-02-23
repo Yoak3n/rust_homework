@@ -9,7 +9,7 @@ const defaultMessages:Array<MessageItem> = [
   {role:'assistant', content:'你好，我是你的助手，有什么可以帮助你的吗？', text:'你好，我是你的助手，有什么可以帮助你的吗？',timestamp:0}
 ]
 
-let messages = ref<Array<MessageItem>>(defaultMessages)
+let messages = ref<MessageItem[]>(defaultMessages)
 let input = ref<string>('')
 import emitter from '../bus';
 const setMessage = (mi:MessageItem) => {
@@ -98,7 +98,7 @@ const updateHistoryStream = (m: MessageItem) => {
   try{
     const index = messages.value.findIndex((item) =>item.timestamp == m.timestamp)
     if (index != -1){
-      messages.value.splice(index, 1, m)
+      messages.value[index] = {...messages.value[index], content:m.content, text:m.text, reasoning_content:m.reasoning_content}
     }else{
       messages.value.push(m)
     }
@@ -114,17 +114,14 @@ const emitScrollToBottom = () => {
 }
 // const debounceEmitScrollToBottom = debounce(emitScrollToBottom, 300)
 const resetHistory = () => {
-  messages.value = [defaultMessages[0]]
+  messages.value.splice(0, messages.value.length,defaultMessages[0])
 }
 const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)
-
 
 
 </script>
 <template>
   <div class="chat-view">
-    {{ messages}}
-    <br/>
     <ChatBoard :messages="messages" :smoothing="appSetting?.smoothing" :model="appSetting?.model"/>
 
     <form class="chat-input" @submit="(e) =>{

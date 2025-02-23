@@ -41,7 +41,8 @@
             <n-form-item label="model">
                 <n-input placeholder="请输入模型名称"  v-model:value="model!.model"/>
             </n-form-item>
-            <n-form-item>
+            <n-divider></n-divider>
+            <n-form-item label="smooth">
                 <n-switch v-model:value="model!.smoothing" />
             </n-form-item>
             <n-form-item>
@@ -53,7 +54,7 @@
 
 <script lang="ts" setup>
 import { ref,onMounted } from 'vue';
-import { NForm, NFormItem, NInput, NButton, NIcon,NSwitch } from 'naive-ui';
+import { NForm, NFormItem, NInput, NButton, NIcon,NSwitch,NDivider } from 'naive-ui';
 import type { AppSetting } from '../types';
 import {updateAllSetting,querySetting} from '../api/db'
 import { useRouter } from 'vue-router';

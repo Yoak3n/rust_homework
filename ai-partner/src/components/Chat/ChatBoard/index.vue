@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { nextTick,  onMounted, ref,onUnmounted, toRef } from 'vue'
+import { nextTick,  onMounted, ref,onUnmounted,PropType} from 'vue'
 import ChatMessage from '../ChatMessage/index.vue'
 import type { MessageItem } from '../../../types/index'
 import emitter from '../../../bus';
@@ -26,7 +26,8 @@ const scrollToBottom = () => {
 let props = defineProps(
   {
     messages: {
-      type: Array<MessageItem>
+      type: Array as PropType<MessageItem[]>,
+      required: true
     },
     smoothing:{
       type:Boolean,
@@ -38,14 +39,21 @@ let props = defineProps(
     }
   }
 )
-let ms= toRef(props.messages)
+
+// watch(
+//   ()=>props.messages,
+//   (newValue) => {
+//     console.log("watch in ChatBoard",newValue);
+//   },{
+//     deep:true
+//   }
+// )
 </script>
 <template>
   <div class="chat-board" ref="chatBody">
-    {{ ms }}
     <h1>{{model}}</h1>
     <div class="chat-body">
-      <ChatMessage v-for="message in ms" :message="message" :smoothing="smoothing" :key="message.timestamp"/>
+      <ChatMessage v-for="m in props.messages" :message="m" :smoothing="smoothing" :key="m.timestamp"/>
     </div>
   </div>
 </template>
