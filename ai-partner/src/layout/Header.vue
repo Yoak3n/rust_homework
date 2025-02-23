@@ -62,7 +62,7 @@ const close = () => {
 
 .title {
     width: 30px;
-
+    padding-left: .5rem;
     img{
         padding-top: 5px;
         line-height: 30px;

@@ -17,6 +17,7 @@
         "center": true,
         "decorations": false,
         "width": 1024,
+        "minWidth": 500,
         "height": 720
       }
     ],

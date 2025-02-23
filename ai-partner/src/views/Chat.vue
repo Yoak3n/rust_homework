@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import ChatForm from '../components/Chat/ChatBoard/index.vue'
 import { NIcon } from 'naive-ui';
+import {Reload,Send} from '@vicons/ionicons5'
 import type {MessageItem} from '../types/index'
 import { computed, ref } from 'vue';
 
@@ -113,17 +114,13 @@ const resetHistory = () => {
     }">
       <input type="text" placeholder="Type a message..." v-model="input"  required minlength="1"/>
       <button type="button" class="reset-btn" @click="resetHistory">
-        <svg t="1740044712308" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2601" width="24" height="24">
-          <path d="M808 602.9c-23.6 164.2-181.8 285.5-358.7 248.3C336.9 827.6 245.6 736.8 222 624.4c-40.3-192 92-361.8 290.4-361.8v99.2l248-148.8-248-148.8v99.2c-248 0-438 222.4-388.6 476.5 30.1 154.7 155 279.4 309.7 309.5C668 995 875.6 833.9 906.2 616.1c4.2-29.6-19.7-55.8-49.5-55.8h0.1c-24.7 0-45.3 18.2-48.8 42.6z" p-id="2602" fill="#ffffff">
-          </path>
-        </svg>
+        <n-icon size="24">
+          <Reload/>
+        </n-icon>
       </button>
       <button type="submit" class="submit-btn" >
-        <n-icon :size="24">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send">
-            <line x1="22" y1="2" x2="11" y2="13"></line>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-          </svg>
+        <n-icon size="24">
+          <Send/>
         </n-icon>
       </button>
     </form>

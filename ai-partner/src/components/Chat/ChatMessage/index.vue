@@ -18,9 +18,9 @@ onMounted(()=>{
     savedCallback.value = ()=>{
         // 检测定时器是否在运行，防止内存泄漏
         console.log('running')
-        if (index < message.value.content!.length){
+        if (index <= message.value.content!.length){
+                displayText.value += message.value.content!.charAt(index) 
                 index ++
-                displayText.value = message.value.content!.slice(0,index)
             }else{
                 enableRunning.value = false
             }

@@ -15,9 +15,6 @@
     "core:window:allow-close",
     "core:window:allow-minimize",
     "sql:default",
-    "sql:allow-execute",
-    "global-shortcut:allow-is-registered",
-    "global-shortcut:allow-register",
-    "global-shortcut:allow-unregister"
+    "sql:allow-execute"
   ]
 }
