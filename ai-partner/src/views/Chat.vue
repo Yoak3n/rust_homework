@@ -123,12 +123,17 @@ const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)
 <template>
   <div class="chat-view">
     <ChatBoard :messages="messages" :smoothing="appSetting?.smoothing" :model="appSetting?.model"/>
-
     <form class="chat-input" @submit="(e) =>{
       e.preventDefault()
       submitUserMessage()
     }">
-      <textarea type="textarea" placeholder="Type a message..." v-model="input"  required minlength="1" @keydown="(e) => {
+      <textarea 
+      type="textarea" 
+      placeholder="Type a message..." 
+      v-model="input"  
+      required 
+      minlength="1" 
+      @keydown="(e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault()
           submitUserMessage()
@@ -171,15 +176,16 @@ const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)
   display: flex;
   padding: 5px;
   border-radius: 10px;
-  background-color: #F7F8FC;
+  background-color: #eee;
   box-sizing: border-box;
   textarea{
     height: 50px;
     width: 90%;
     border-radius: 5px;
-    background-color: #F7F8FC;
-    line-height: 50px;
+    background-color: #eee;
     padding: 0 17px;
+    line-height: 50px;
+    font-size: 1rem;
     overflow: auto; /* 允许滚动 */
     resize: none; /* 禁用调整大小手柄 */
     scrollbar-width: none; /* 隐藏滚动条（Firefox） */

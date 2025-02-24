@@ -19,7 +19,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/Setting.vue')
       }
     ]
-  },
+  },{
+    path: '/dialog',
+    name: 'Dialog',
+    component: () => import('../views/Dialog.vue'),
+  }
 //   {
 //     path: '/about',
 //     name: 'About',
