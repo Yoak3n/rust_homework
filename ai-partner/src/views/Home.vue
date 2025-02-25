@@ -8,8 +8,12 @@
                 <n-menu v-model:value="activeKey" :collapsed="collapsed" :collapsed-width="72" :collapsed-icon-size="22"
                     :options="menuOptions" />
                 <div class="option-btn" style="display: flex;flex-direction: column;">
-                    <n-button text style="font-size: 48px;margin-bottom:2rem" size="large" class="setting"
-                        @click="goTo('/dialog')">
+                    <n-button text 
+                    @click="()=>{modalKey = 'about';showModal = !showModal}"
+                    style="font-size: 48px;margin-bottom:2rem" 
+                    size="large" 
+                    class="setting"
+                        >
                         <template #icon>
                             <n-icon>
                                 <ChatboxEllipsesOutline/>
@@ -17,7 +21,7 @@
                         </template>
                     </n-button>
                     <n-button text style="font-size: 48px;margin-bottom:2rem" size="large" class="setting"
-                        @click="goToSetting">
+                        @click="()=>{modalKey = 'setting';showModal = !showModal}">
                         <template #icon>
                             <n-icon>
                                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -31,13 +35,13 @@
                         </template>
                     </n-button>
                 </div>
-
             </n-layout-sider>
             <n-layout-content>
                 <router-view />
             </n-layout-content>
-        </n-layout>
 
+        </n-layout>
+        <Modal v-model:show="showModal" :switch-callback="showModalFun" :modalKey="modalKey"/>
     </div>
 </template>
 
@@ -47,23 +51,18 @@ import type { Component } from 'vue'
 import {ChatboxEllipsesOutline} from '@vicons/ionicons5'
 import { NLayout, NLayoutSider, NLayoutContent, NMenu, NIcon, NButton } from 'naive-ui'
 import type { MenuOption } from 'naive-ui'
-
+import Modal from '../components/Modal/index.vue'
 let collapsed = ref<boolean>(true)
 import Message from '../components/Icon/Message.vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 let activeKey = ref<string>('')
 const $route = useRoute()
-const $router = useRouter()
-const goTo = (path: string) => {
-    $router.push(path)
-}
-const goToSetting = () => {
-    goTo('/setting')
-}
 const renderIcon = (icon: Component) => {
     return () => h(NIcon, null, { default: () => h(icon) })
 }
-
+let showModal = ref<boolean>(false)
+const showModalFun = (v:boolean) => showModal.value = v
+let modalKey = ref('')
 onMounted(() => {
     activeKey.value = $route.name?.toString() || ''
 })
@@ -95,7 +94,6 @@ const menuOptions: Array<MenuOption> = [
     .n-layout {
         height: 100%;
     }
-
     .n-menu.n-menu--collapsed .n-menu-item-content.n-menu-item-content--selected::before {
         background-color: rgba(74, 144, 226, 0.2) !important;
     }
@@ -107,7 +105,12 @@ const menuOptions: Array<MenuOption> = [
     .n-menu .n-menu-item-content.n-menu-item-content--selected .n-menu-item-content-header a {
         color: #4a90e2 !important;
     }
-
+    .n-button:not(.n-button--disabled):active,
+    .n-button:not(.n-button--disabled):focus,
+    .n-button:not(.n-button--disabled):hover {
+        background-color: var(--n-color-pressed);
+        color: #4a90e2;
+      }
 
 }
 </style>

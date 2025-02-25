@@ -1,47 +1,67 @@
+<script lang="ts" setup>
+import { ref } from 'vue'
+let message = ref('')
+
+const submittMessage = () => {
+  message.value = ''
+}
+</script>
+
+
 <template>
-    <div class="dialog">
-        <div class="dialog-header" data-tauri-drag-region>
-            <span>对话框标题</span>
-            <button id="expandButton">展开</button>
-        </div>
-        <div class="dialog-content">
-            <textarea id="dialogTextarea" rows="4" cols="50"></textarea>
-        </div>
+  <div class="dialog">
+    <div class="dialog-bg"></div>
+    <div class="dialog-header" data-tauri-drag-region>
     </div>
+    <div class="dialog-content">
+        <textarea class="dialog-textarea" rows="4" cols="50" v-model="message" @keydown="(e)=>{
+          e.preventDefault()
+          if(e.key === 'Enter'){submittMessage()}
+        }" >
+
+        </textarea>
+    </div>
+  </div>
 
 </template>
 
 
 <style>
-html{
-  background-color: transparent;
-}
 body{
   background-color: transparent;
 }
-.dialog {
-  border: 1px solid #ccc;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  background: white;
-  z-index: 1000;
+
+.dialog-bg{
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  filter: blur(10px);
 }
 
 .dialog-header {
   padding: 10px;
-  background: #f1f1f1;
-  border-bottom: 1px solid #ccc;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  backdrop-filter: blur(10px);
+  color: #ccc;
+  background-color: rgba(200, 200, 200,.5);
+
 }
 
 .dialog-content {
   padding: 10px;
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  align-items: center;
 }
 
-textarea {
+.dialog-textarea {
   width: 100%;
+  padding: 10px;
   resize: none;
+  border-radius: 10px;
+  background-color: rgba(77, 107, 254, .5);
+  color: #fff;
 }
 
 </style>

@@ -13,10 +13,6 @@ const routes: RouteRecordRaw[] = [
         path:'/chat',
         name:'Chat',
         component: () => import('../views/Chat.vue')
-      },{
-        path:'/setting',
-        name:'Setting',
-        component: () => import('../views/Setting.vue')
       }
     ]
   },{
@@ -24,11 +20,6 @@ const routes: RouteRecordRaw[] = [
     name: 'Dialog',
     component: () => import('../views/Dialog.vue'),
   }
-//   {
-//     path: '/about',
-//     name: 'About',
-//     component: () => import(/* webpackChunkName: "about" */ '../views/About.vue'),
-//   }
 ]
 
 

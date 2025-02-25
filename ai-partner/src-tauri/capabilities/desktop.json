@@ -12,6 +12,9 @@
     "global-shortcut:default",
     "global-shortcut:allow-is-registered",
     "global-shortcut:allow-register-all",
-    "global-shortcut:allow-unregister-all"
+    "global-shortcut:allow-unregister-all",
+    "process:allow-exit",
+    "process:allow-restart",
+    "process:default"
   ]
 }

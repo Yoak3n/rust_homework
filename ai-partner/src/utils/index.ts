@@ -1,5 +1,5 @@
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-
+export * from './router'
 
 export const switchDialogWindow= async() => {
   let oldWindow = await WebviewWindow.getByLabel("dialog");

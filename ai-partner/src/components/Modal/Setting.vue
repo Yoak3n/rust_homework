@@ -55,26 +55,30 @@
 <script lang="ts" setup>
 import { ref,onMounted } from 'vue';
 import { NForm, NFormItem, NInput, NButton, NIcon,NSwitch,NDivider } from 'naive-ui';
-import type { AppSetting } from '../types';
-import {updateAllSetting,querySetting} from '../api/db'
-import { useRouter } from 'vue-router';
+import type { AppSetting } from '../../types';
+import {updateAllSetting,querySetting} from '../../api/db'
 let model = ref<AppSetting|null>({base_url: '', key: '', model: '',smoothing:false});
-const $router = useRouter();
 onMounted(async()=>{
     const s = await querySetting();
     if(s){
         model.value = s;
     }
 })
+const props = defineProps({
+    switchCallback: {
+        type: Function,
+        default: () => {}
+    }
 
-const saveSetting = ()=>{
+})
+const saveSetting = async()=>{
     if(model.value == null) return;
     const s:AppSetting = model.value;
-    console.log(s);
     updateAllSetting(s)
     window.$message.success('保存成功');
-    $router.push('/chat');
+    props.switchCallback(false);
 }
+onMounted(()=>saveSetting)
 </script>
 
 <style scoped lang="less">
