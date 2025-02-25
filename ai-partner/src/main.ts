@@ -11,9 +11,11 @@ import {Window } from '@tauri-apps/api/window'
 let current = Window.getCurrent();
 let unlisten:UnlistenFn 
 if (current.label == 'main'){
-    unlisten = await listen<string>('dialog',(event)=>{
+    listen<string>('dialog',(event)=>{
         console.log('payload',event.payload);
         invoke('create_dialog')
+      }).then((res)=>{
+          unlisten = res
       })
 }
 
