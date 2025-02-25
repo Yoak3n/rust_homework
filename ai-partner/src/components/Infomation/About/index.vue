@@ -2,7 +2,7 @@
   <div class="app-about" :class="{ 'dark-mode': darkMode }">
     <!-- 头部品牌信息 -->
     <header class="brand-header">
-      <img :src="appInfo.logo" alt="App Logo" class="app-logo" />
+      <img src="/src/assets/tauri.svg" alt="App Logo" class="app-logo" />
       <div class="title-group">
         <h1>{{ appInfo.name }}</h1>
         <p class="version-info">
@@ -32,32 +32,6 @@
           <div class="info-item">
             <label>配置文件：</label>
             <a @click="openConfigFolder">{{ appInfo.configPath }}</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- 系统状态卡片 -->
-      <div class="info-card">
-        <h2><i class="icon-monitor"></i> 系统状态</h2>
-        <div class="status-grid">
-          <div class="status-item">
-            <div class="status-label">内存使用</div>
-            <div class="status-value">
-              {{ formatMemory(systemStatus.memoryUsage) }} / 
-              {{ formatMemory(systemStatus.totalMemory) }}
-            </div>
-            <progress 
-              :value="systemStatus.memoryUsage" 
-              :max="systemStatus.totalMemory"
-            ></progress>
-          </div>
-          <div class="status-item">
-            <div class="status-label">CPU占用</div>
-            <div class="status-value">{{ systemStatus.cpuLoad }}%</div>
-            <progress 
-              :value="systemStatus.cpuLoad" 
-              max="100"
-            ></progress>
           </div>
         </div>
       </div>
@@ -106,14 +80,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted,version } from 'vue';
 import { platform,arch } from '@tauri-apps/plugin-os';
-import {getVersion} from '@tauri-apps/api/app'
+import {getVersion,getName, getTauriVersion} from '@tauri-apps/api/app'
 const darkMode = ref(false);
 const showLicenseDialog = ref(false);
 const selectedLibrary = ref(null);
 
-const appInfo = reactive({
+let appInfo = reactive({
   name: 'My Application',
   version: '',
   buildNumber: '2101',
@@ -123,38 +97,24 @@ const appInfo = reactive({
   logo: '/path/to/logo.png'
 });
 
-const systemInfo = reactive({
+let systemInfo = reactive({
   architecture: arch(),
   platform,
   // 其他系统信息...
 });
 
-const systemStatus = reactive({
-  memoryUsage: 0,
-  totalMemory: 0,
-  cpuLoad: 0
-});
+let tauriVersion = ref('');
+const dependencies = ref([]);
 
-const dependencies = ref([
-  { name: 'Vue', version: '3.3.4', license: 'MIT' },
-  { name: 'Electron', version: '24.1.0', license: 'MIT' },
-  { name: 'TypeScript', version: '5.1.6', license: 'Apache-2.0' }
-]);
-
-// 实时更新系统状态
-let updateInterval;
 onMounted(async() => {
-  appInfo.version = await getVersion()
-  updateInterval = setInterval(() => {
-    systemStatus.memoryUsage = window.performance.memory.usedJSHeapSize;
-    systemStatus.totalMemory = window.performance.memory.totalJSHeapSize;
-    // systemStatus.cpuLoad ; // 需要实现具体逻辑
-  }, 1000);
-});
+  tauriVersion.value = await getTauriVersion();
+  appInfo.version = await getVersion();
+  appInfo.name = await getName()
+  appInfo.runtime  = `tauri  ${tauriVersion.value}`
 
-const formatMemory = (bytes) => {
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-};
+  dependencies.value.push({ name: 'Vue', version:version , license: 'MIT' })
+  dependencies.value.push({ name: 'tauri', version:tauriVersion.value , license: 'MIT' })
+});
 
 const checkUpdate = async () => {
   // 实现更新检查逻辑
