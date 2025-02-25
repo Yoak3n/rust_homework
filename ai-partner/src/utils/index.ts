@@ -1,17 +1,45 @@
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 
-export const createSettingWindow= async() => {
-    let oldWindow = await WebviewWindow.getByLabel("setting");
+export const switchDialogWindow= async() => {
+  let oldWindow = await WebviewWindow.getByLabel("dialog");
+  if (oldWindow) {
+      if (await oldWindow.isVisible()){
+        oldWindow.hide();
+      }else{
+        oldWindow.show();
+      }
+      return;
+  }else{
+    const webviewWindow = new WebviewWindow("dialog", {
+      url: "/dialog",
+      title: "对话",
+      width: 400,
+      height: 300,
+      center: true,
+      resizable: false,
+      alwaysOnTop: true,
+      decorations: false,
+      transparent: true,
+    });
+    webviewWindow.once("tauri://created", () => {
+        console.log("对话窗口已创建");
+    });
+    webviewWindow.once("tauri://error", (e) => {
+        console.log(e);
+    })
+  }
+}
+export const createDialogWindow= async() => {
+    let oldWindow = await WebviewWindow.getByLabel("dialog");
     if (oldWindow) {
-
         oldWindow.show();
         oldWindow.setAlwaysOnTop(true);
         return;
     }
-    const webviewWindow = new WebviewWindow("setting", {
-        url: "/setting",
-        title: "设置",
+    const webviewWindow = new WebviewWindow("dialog", {
+        url: "/dialog",
+        title: "对话",
         width: 400,
         height: 300,
         center: true,
@@ -19,14 +47,13 @@ export const createSettingWindow= async() => {
         alwaysOnTop: true,
     });
     webviewWindow.once("tauri://created", () => {
-        console.log("设置窗口已创建");
+        console.log("对话窗口已创建");
     });
     webviewWindow.once("tauri://error", (e) => {
         console.log(e);
-                
     })
 }
-export const closeSettingWindow= async()=>{
+export const closeDialogWindow= async()=>{
     const oldWindow = await WebviewWindow.getByLabel("setting");
     if (oldWindow) {
         oldWindow.close();

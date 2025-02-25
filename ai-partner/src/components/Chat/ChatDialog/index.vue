@@ -13,14 +13,15 @@
 
 
 <style>
+html{
+  background-color: transparent;
+}
+body{
+  background-color: transparent;
+}
 .dialog {
-  width: 300px;
   border: 1px solid #ccc;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   background: white;
   z-index: 1000;
 }
