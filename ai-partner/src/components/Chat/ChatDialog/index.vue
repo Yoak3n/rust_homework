@@ -1,6 +1,6 @@
 <template>
     <div class="dialog">
-        <div class="dialog-header">
+        <div class="dialog-header" data-tauri-drag-region>
             <span>对话框标题</span>
             <button id="expandButton">展开</button>
         </div>

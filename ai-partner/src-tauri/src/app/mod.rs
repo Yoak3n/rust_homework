@@ -16,7 +16,7 @@ pub fn run() {
         .setup(|app| {
             #[cfg(desktop)]
             {   
-                use tauri::{Emitter,Listener};
+                use tauri::Emitter;
                 use tauri_plugin_global_shortcut::{Code, Modifiers,ShortcutState};
 
                 app.handle().plugin(
@@ -37,12 +37,6 @@ pub fn run() {
                         }
                     }
                 )?;
-
-                app.listen("dialog", |event|{ 
-                    println!("Dialog event received: {}", event.payload());    
-                    
-                    });
-
                 let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
                 let menu = Menu::with_items(app, &[&quit_i])?;
                 let _ = TrayIconBuilder::new()
