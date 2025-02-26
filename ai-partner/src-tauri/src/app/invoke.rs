@@ -4,10 +4,7 @@ pub fn greet(name: &str) -> String {
 }
 
 use tauri::{
-    AppHandle,
-    Error, 
-    Manager, 
-    WebviewUrl, WebviewWindowBuilder,
+    AppHandle, Error, Manager, WebviewUrl, WebviewWindowBuilder,PhysicalSize,
 };
 #[tauri::command]
 pub async fn create_dialog(app_handle: AppHandle) -> Result<(), Error> {
@@ -28,11 +25,12 @@ pub async fn create_dialog(app_handle: AppHandle) -> Result<(), Error> {
                 WebviewUrl::App("/dialog".into()))
                 .transparent(true)
                 .center()
+                .resizable(false)
+                .always_on_top(true)
+                .decorations(false)
                 .build()?;
 
-            window.set_resizable(false)?;
-            window.set_always_on_top(true)?;
-            window.set_decorations(false)?;
+            window.set_size(PhysicalSize::new(600, 400))?;
 
         }
     } 
