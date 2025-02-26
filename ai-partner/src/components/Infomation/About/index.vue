@@ -82,7 +82,7 @@
               <span><a href="https://www.yoake.top" target="_blank" rel="noopener noreferrer">Mou1ght</a></span>
             </div>
             <div>
-              一个摸鱼偷闲时喜欢写点东西的人
+              一个喜欢摸鱼偷闲时写点东西的人
             </div>
           </div>
         </div>
