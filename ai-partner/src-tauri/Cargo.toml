@@ -1,8 +1,8 @@
 [package]
 name = "ai-partner"
-version = "0.1.1"
+version = "0.1.2"
 description = "A Tauri App"
-authors = ["Yoa"]
+authors = ["Yoake"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -25,7 +25,7 @@ serde_json = "1"
 tauri-plugin-window-state = "2.0.0"
 tauri-plugin-sql = { version = "2", features = ["sqlite"] }
 tauri-plugin-process = "2"
-tauri-plugin-os = "2"
+tauri-plugin-shell = "2"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-global-shortcut = "2"

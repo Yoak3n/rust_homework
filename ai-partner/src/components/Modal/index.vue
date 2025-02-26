@@ -1,6 +1,6 @@
 <template>
-    <n-modal :show="props.show" @update:show="()=>props.switchCallback(!show)" closable>
-        <n-card>
+    <n-modal :show="props.show" @update:show="()=>props.switchCallback(!show)" >
+        <n-card size="large">
             <SettingView :switchCallback="props.switchCallback" v-if="props.modalKey==='setting'" />
             <AboutView :switchCallback="props.switchCallback" v-if="props.modalKey==='about'" />
         </n-card>

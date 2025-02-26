@@ -38,3 +38,27 @@ pub async fn create_dialog(app_handle: AppHandle) -> Result<(), Error> {
     } 
     Ok(())
 }
+
+
+use std::env::current_exe;
+
+#[tauri::command]
+pub fn get_app_install_path() -> Result<String, String> {
+    let exe_path = current_exe().map_err(|e| e.to_string())?;
+    
+    let install_dir = if cfg!(target_os = "macos") {
+        // macOS: 可执行文件位于 .app/Contents/MacOS/ 下
+        exe_path.parent()  // MacOS 目录
+            .and_then(|p| p.parent())  // Contents 目录
+            .and_then(|p| p.parent())  // .app 目录
+    } else {
+        // Windows 和 Linux: 可执行文件在安装目录的子目录或根目录
+        exe_path.parent()
+    };
+    
+    install_dir
+        .ok_or("无法确定安装目录".to_string())
+        .and_then(|p| p.to_str()
+            .ok_or("路径转换错误".to_string())
+            .map(|s| s.to_string()))
+}

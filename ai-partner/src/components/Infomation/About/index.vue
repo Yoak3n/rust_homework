@@ -1,74 +1,111 @@
 <template>
   <div class="app-about" :class="{ 'dark-mode': darkMode }">
     <!-- 头部品牌信息 -->
-    <header class="brand-header">
-      <img src="/src/assets/tauri.svg" alt="App Logo" class="app-logo" />
-      <div class="title-group">
-        <h1>{{ appInfo.name }}</h1>
-        <p class="version-info">
-          Version {{ appInfo.version }} (Build {{ appInfo.buildNumber }})
-        </p>
-      </div>
-    </header>
 
-    <!-- 主要信息卡片 -->
-    <div class="info-cards">
-      <!-- 基础信息卡片 -->
-      <div class="info-card">
-        <h2><i class="icon-info"></i> 基本信息</h2>
-        <div class="info-grid">
-          <div class="info-item">
-            <label>架构：</label>
-            <span>{{ systemInfo.architecture }}</span>
+    <n-tabs type="segment">
+
+      <n-tab-pane name="chap1" tab="使用说明">
+        <div >
+          安装后开始对话前需要先
+          <b>配置api相关信息:</b>
+          <br/>
+          在设置中找到api配置，填入api地址、api密钥以及调用的模型名即可开始对话。
+        </div>
+        <n-divider></n-divider>
+        <div>
+          smooth选项为是否开启平滑输出，开启后每个字符会逐个输出，仅优化视觉效果，实际性能较低
+        </div>
+        <n-divider></n-divider>
+        <div>
+          <b>快捷键:</b>
+          <br/>
+          打开快速对话框（功能开发中）: <b>alt + 1</b> / <b>alt + n</b>
+          <br/>
+
+        </div>
+      </n-tab-pane>
+      <!-- <n-tab-pane name="chap2" tab="第三章">
+        但是忽然，公寓的烟味消失，火警也停了。我的女朋友走进了房间，让我震惊的是，她摘下了自己的假发，她是
+        Jeff Bezos（Amazon 老板）假扮的！<br><br>
+        “我对你坚持顾客至上的原则感到十分骄傲”，说完，他递给我一张五美金的亚马逊礼品卡，从我家窗户翻了出去，跳上了一辆
+        Amazon 会员服务的小货车，一溜烟离开了。<br><br>虽然现在我已不在 Amazon
+        工作，但我还是非常感激在哪里学的到的经验，这些经验我终身难忘。你们同意么？
+      </n-tab-pane> -->
+      <n-tab-pane name="chap3" tab="版本信息" display-directive="show-lazy">
+        <header class="brand-header">
+          <img src="/src/assets/tauri.svg" alt="App Logo" class="app-logo" />
+          <div class="title-group">
+            <h1>{{ appInfo.name }}</h1>
+            <p class="version-info">
+              Version {{ appInfo.version }}
+            </p>
           </div>
-          <div class="info-item">
-            <label>编译日期：</label>
-            <span>{{ appInfo.buildDate }}</span>
-          </div>
-          <div class="info-item">
-            <label>运行环境：</label>
-            <span>{{ appInfo.runtime }}</span>
-          </div>
-          <div class="info-item">
-            <label>配置文件：</label>
-            <a @click="openConfigFolder">{{ appInfo.configPath }}</a>
+        </header>
+
+        <!-- 基础信息卡片 -->
+        <div class="info-card">
+          <h2><i class="icon-info"></i> 基本信息</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>项目地址：</label>
+              <span><a href="https://github.com/Yoak3n/rust_homework/tree/main/ai-partner" target="_blank" rel="noopener noreferrer">ai-partner</a></span>
+            </div>
+            <div class="info-item">
+              <label>编译日期：</label>
+              <span>{{ appInfo.buildDate }}</span>
+            </div>
+            <div class="info-item">
+              <label>开发框架：</label>
+              <span>
+                <a href="https://tauri.app/" target="_blank" rel="noopener noreferrer">tauri {{ tauriVersion }}</a>
+                /
+                <a href="https://vuejs.org/" target="_blank" rel="noopener noreferrer">vue {{version}}</a>
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+        <div class="info-card">
+          <h2><i class="icon-info"></i>开发者信息</h2>
+          <div class="info-grid">
 
-      <!-- 依赖库信息卡片 -->
-      <div class="info-card">
-        <h2><i class="icon-package"></i> 依赖库</h2>
-        <div class="dependency-list">
-          <div 
-            v-for="(dep, index) in dependencies" 
-            :key="index"
-            class="dependency-item"
-          >
-            <div class="dep-name">{{ dep.name }}</div>
-            <div class="dep-version">{{ dep.version }}</div>
-            <a 
-              v-if="dep.license" 
-              class="dep-license"
-              @click="showLicense(dep)"
-            >{{ dep.license }}</a>
+            <div class="info-item">
+              <label>                
+                <n-avatar src="https://avatars.githubusercontent.com/u/120039624?v=4">
+                </n-avatar>
+              </label>
+              <span>
+                <a href="https://github.com/Yoak3n" target="_blank" rel="noopener noreferrer">Yoake</a>
+              </span>
+            </div>
+            <div class="info-item">
+              <label>个人网站：</label>
+              <span><a href="https://www.yoake.top" target="_blank" rel="noopener noreferrer">Mou1ght</a></span>
+            </div>
+            <div>
+              一个摸鱼偷闲时喜欢写点东西的人
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+        <!-- 操作按钮组 -->
+        <div class="action-buttons">
+          <button class="btn" @click="checkUpdate">
+            <i class="icon-update"></i> 检查更新
+          </button>
+          <button class="btn" @click="openLogsFolder">
+            <i class="icon-folder"></i> 打开所在目录
+          </button>
+          <button class="btn" @click="copySystemInfo">
+            <i class="icon-copy"></i> 复制诊断信息
+          </button>
+        </div>
+      </n-tab-pane>
+    </n-tabs>
 
-    <!-- 操作按钮组 -->
-    <div class="action-buttons">
-      <button class="btn" @click="checkUpdate">
-        <i class="icon-update"></i> 检查更新
-      </button>
-      <button class="btn" @click="openLogsFolder">
-        <i class="icon-folder"></i> 打开日志目录
-      </button>
-      <button class="btn" @click="copySystemInfo">
-        <i class="icon-copy"></i> 复制诊断信息
-      </button>
-    </div>
+
+
+
+
+
 
     <!-- 许可证弹窗 -->
     <!-- <LicenseDialog 
@@ -80,9 +117,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted,version } from 'vue';
-import { platform,arch } from '@tauri-apps/plugin-os';
-import {getVersion,getName, getTauriVersion} from '@tauri-apps/api/app'
+import { ref, reactive, onMounted, version } from 'vue';
+import { NButton, NTabs, NTabPane,NDivider,NAvatar } from 'naive-ui';
+import { getVersion, getName, getTauriVersion } from '@tauri-apps/api/app'
+import { invoke } from '@tauri-apps/api/core';
+import {open} from '@tauri-apps/plugin-shell'
+import versionJson from '../../../utils/versionJson.json'
 const darkMode = ref(false);
 const showLicenseDialog = ref(false);
 const selectedLibrary = ref(null);
@@ -92,52 +132,33 @@ let appInfo = reactive({
   version: '',
   buildNumber: '2101',
   buildDate: '2023-08-20',
-  runtime: 'Electron 24.1.0 / Node.js 18.16.0',
   configPath: '/Users/username/.app/config',
   logo: '/path/to/logo.png'
 });
 
-let systemInfo = reactive({
-  architecture: arch(),
-  platform,
-  // 其他系统信息...
-});
 
 let tauriVersion = ref('');
-const dependencies = ref([]);
-
-onMounted(async() => {
+onMounted(async () => {
   tauriVersion.value = await getTauriVersion();
   appInfo.version = await getVersion();
   appInfo.name = await getName()
-  appInfo.runtime  = `tauri  ${tauriVersion.value}`
-
-  dependencies.value.push({ name: 'Vue', version:version , license: 'MIT' })
-  dependencies.value.push({ name: 'tauri', version:tauriVersion.value , license: 'MIT' })
+  appInfo.buildDate = new Date(versionJson.compileTime).toLocaleDateString();
 });
 
 const checkUpdate = async () => {
   // 实现更新检查逻辑
 };
 
-const openConfigFolder = () => {
-  window.shell.openPath(appInfo.configPath); // Electron API示例
-};
+const openLogsFolder= async () => {
+  const pwd = await invoke('get_app_install_path')
+  open(pwd)
+}
 
 const showLicense = (library) => {
   selectedLibrary.value = library;
   showLicenseDialog.value = true;
 };
 
-const copySystemInfo = () => {
-  const info = `
-    Application: ${appInfo.name} v${appInfo.version}
-    Build: ${appInfo.buildNumber} (${appInfo.buildDate})
-    Memory Usage: ${formatMemory(systemStatus.memoryUsage)}
-    CPU Load: ${systemStatus.cpuLoad}%
-  `;
-  navigator.clipboard.writeText(info);
-};
 </script>
 
 <style scoped>
@@ -146,14 +167,14 @@ const copySystemInfo = () => {
   margin: 0 auto;
   background: var(--bg-color);
   color: var(--text-color);
-  max-height: 100%;
+  max-height: 80%;
 }
 
 .brand-header {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0rem;
 }
 
 .app-logo {
@@ -180,7 +201,7 @@ const copySystemInfo = () => {
   background: var(--card-bg);
   border-radius: 8px;
   padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .info-grid {

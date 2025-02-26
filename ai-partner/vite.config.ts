@@ -1,9 +1,15 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
+import fs from 'fs'
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
-
+const versionJson = {
+  "compileTime": new Date().getTime(),
+}
+fs.writeFile('./src/utils/versionJson.json',JSON.stringify(versionJson), (err) => {
+  if (err) throw err;
+});
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
   plugins: [vue()],

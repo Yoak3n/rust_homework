@@ -76,7 +76,7 @@ watch(enableRunning,(n)=>{
     }else{
         if (props.smoothing){
             if (n){
-                timerRef.value = setInterval(savedCallback.value,50)
+                timerRef.value = setInterval(savedCallback.value,50 + Math.random() * 50)
             }else{
                 clearInterval(timerRef.value!)
             }
