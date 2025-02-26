@@ -54,15 +54,27 @@ fn register_shortcuts(app:&App)->Result<(),Error> {
 
 fn create_systray(app: &mut App)->Result<(),Error>{
     let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-    let menu = Menu::with_items(app, &[&quit_i])?;
+    let hide_i = MenuItem::with_id(app, "hide", "Hide", true, None::<&str>)?;
+    let menu = Menu::with_items(app, &[&hide_i,&quit_i])?;
     let _ = TrayIconBuilder::new()
         .menu(&menu)
         .show_menu_on_left_click(true)
         .icon(app.default_window_icon().unwrap().clone())
-        .on_menu_event(|app, event|match event.id.as_ref(){
+        .on_menu_event(move|app, event|match event.id.as_ref(){
             "quit" => {
                 println!("quit menu item was clicked");
                 app.exit(0);
+              },
+              "hide" => {
+                  if let Some(main_window) = app.get_webview_window("main"){
+                      if main_window.is_visible().unwrap(){
+                          main_window.hide().unwrap();
+                          hide_i.set_text("Show").unwrap();
+                      }else{
+                          main_window.show().unwrap();
+                          hide_i.set_text("Hide").unwrap();
+                      }
+                  }
               }
               _ => {
                 println!("menu item {:?} not handled", event.id);

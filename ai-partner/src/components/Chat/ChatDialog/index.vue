@@ -15,8 +15,7 @@ const submittMessage = () => {
     </div>
     <div class="dialog-content">
         <textarea class="dialog-textarea" rows="4" cols="50" v-model="message" @keydown="(e)=>{
-          e.preventDefault()
-          if(e.key === 'Enter'){submittMessage()}
+        if(e.key === 'Enter'){e.preventDefault();submittMessage()}
         }" >
 
         </textarea>

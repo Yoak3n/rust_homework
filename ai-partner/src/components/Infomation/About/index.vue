@@ -78,7 +78,7 @@
               </span>
             </div>
             <div class="info-item">
-              <label>个人网站：</label>
+              <label>网站：</label>
               <span><a href="https://www.yoake.top" target="_blank" rel="noopener noreferrer">Mou1ght</a></span>
             </div>
             <div>
