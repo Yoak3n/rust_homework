@@ -3,6 +3,7 @@ pub fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
+use serde::Serialize;
 use tauri::{
     AppHandle, Error, Manager, WebviewUrl, WebviewWindowBuilder,PhysicalSize,
 };
@@ -59,4 +60,54 @@ pub fn get_app_install_path() -> Result<String, String> {
         .and_then(|p| p.to_str()
             .ok_or("路径转换错误".to_string())
             .map(|s| s.to_string()))
+}
+
+use tauri::Emitter;
+use futures::StreamExt;
+use reqwest::{Client,header::{HeaderMap,HeaderValue,AUTHORIZATION}};
+
+#[derive(Serialize)]
+struct MessageBody {
+
+}
+
+
+#[tauri::command]
+pub async fn compeletion_stream(app_handle: tauri::AppHandle) -> Result<(), String> {
+    tokio::spawn(async move {
+        let client = Client::new();
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", "your_auth_token"))
+                .expect("Invalid authorization header")
+        );
+        let response = match client.post("https://你的流式API地址")
+            .send()
+            .await {
+                Ok(res) => res,
+                Err(e) => {
+                    let _ = app_handle.emit("stream-error", e.to_string());
+                    return;
+                }
+            };
+
+        let mut stream = response.bytes_stream();
+        
+        while let Some(chunk) = stream.next().await {
+            match chunk {
+                Ok(bytes) => {
+                    let data = String::from_utf8_lossy(&bytes).to_string();
+                    if let Err(e) = app_handle.emit("stream-data", data) {
+                        eprintln!("事件发送失败: {}", e);
+                    }
+                }
+                Err(e) => {
+                    let _ = app_handle.emit("stream-error", e.to_string());
+                }
+            }
+        }
+    });
+
+    Ok(())
 }

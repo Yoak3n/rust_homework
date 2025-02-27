@@ -13,7 +13,12 @@ pub fn run() {
         .plugin(tauri_plugin_sql::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_window_state::Builder::default().build())
-        .invoke_handler(tauri::generate_handler![invoke::greet,invoke::create_dialog,invoke::get_app_install_path])
+        .invoke_handler(tauri::generate_handler![
+            invoke::greet,
+            invoke::create_dialog,
+            invoke::get_app_install_path,
+            invoke::compeletion_stream
+            ])
         .setup(|app| {
             
             #[cfg(desktop)]
