@@ -30,6 +30,7 @@ const submitUserMessage = () => {
 
 import { querySetting } from '../api/db'
 import { throttle } from '../utils';
+import { invoke } from '@tauri-apps/api/core';
 let generating = ref(false)
 let appSetting = ref<AppSetting>()
 onMounted(async () => {
@@ -113,8 +114,11 @@ const emitScrollToBottom = () => {
   emitter.emit('scrollToBottom')
 }
 // const debounceEmitScrollToBottom = debounce(emitScrollToBottom, 300)
-const resetHistory = () => {
+const resetHistory = async() => {
+  let r = await invoke('completions_stream')
   messages.value.splice(0, messages.value.length,defaultMessages[0])
+  console.log(r);
+  
 }
 const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)
 

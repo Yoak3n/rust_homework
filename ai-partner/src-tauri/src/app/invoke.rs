@@ -3,10 +3,10 @@ pub fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-use serde::Serialize;
 use tauri::{
     AppHandle, Error, Manager, WebviewUrl, WebviewWindowBuilder,PhysicalSize,
 };
+use super::model::*;
 #[tauri::command]
 pub async fn create_dialog(app_handle: AppHandle) -> Result<(), Error> {
     match app_handle.get_webview_window("dialog")  {
@@ -40,7 +40,6 @@ pub async fn create_dialog(app_handle: AppHandle) -> Result<(), Error> {
 
 
 use std::env::current_exe;
-
 #[tauri::command]
 pub fn get_app_install_path() -> Result<String, String> {
     let exe_path = current_exe().map_err(|e| e.to_string())?;
@@ -65,49 +64,136 @@ pub fn get_app_install_path() -> Result<String, String> {
 use tauri::Emitter;
 use futures::StreamExt;
 use reqwest::{Client,header::{HeaderMap,HeaderValue,AUTHORIZATION}};
-
-#[derive(Serialize)]
-struct MessageBody {
-
-}
-
+use serde_json::json;
 
 #[tauri::command]
-pub async fn compeletion_stream(app_handle: tauri::AppHandle) -> Result<(), String> {
+pub async fn completions_stream(app_handle: tauri::AppHandle) -> Result<(), String> {
+    let messages:Vec<MessageItem> = [
+        MessageItem{
+            role: "system".to_string(),
+            content: "你是一个智能助手，请根据用户的问题，提供简洁、准确的回答".to_string(),
+            reasoning_content: None,
+        },
+        MessageItem{
+            role: "user".to_string(),
+            content: "你好，你是谁？".to_string(),
+            reasoning_content: None,
+        }
+    ].to_vec();
+
     tokio::spawn(async move {
+        println!("开始请求");
         let client = Client::new();
         let mut headers = HeaderMap::new();
         headers.insert(
             AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", "your_auth_token"))
+            HeaderValue::from_str(&format!("Bearer {}", ""))
                 .expect("Invalid authorization header")
         );
-        let response = match client.post("https://你的流式API地址")
+        let payload = json!({
+            "stream": true,
+            "messages": messages,
+            "model":"deepseek-v3"
+        });
+        let response = match client
+            .post("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions")
+            .headers(headers)
+            .json(&payload)
             .send()
             .await {
                 Ok(res) => res,
                 Err(e) => {
+                    println!("请求失败: {}", e);
                     let _ = app_handle.emit("stream-error", e.to_string());
                     return;
                 }
             };
-
+        if response.status() != 200 {
+            println!("请求失败: {}", response.status());
+            let _ = app_handle.emit("stream-error", response.status().to_string());
+            return;
+        }
         let mut stream = response.bytes_stream();
-        
         while let Some(chunk) = stream.next().await {
             match chunk {
                 Ok(bytes) => {
-                    let data = String::from_utf8_lossy(&bytes).to_string();
-                    if let Err(e) = app_handle.emit("stream-data", data) {
-                        eprintln!("事件发送失败: {}", e);
+                    if let Some(ret) = handle_stream_data(&bytes){
+                        for item in ret{
+                            println!("收到数据: {}",item);
+                            if let Err(e) = app_handle.emit("stream-data", item) {
+                                eprintln!("事件发送失败: {}", e);
+                            }
+                        }
+                    }else{
+                        println!("收到结束信号");
+                        if let Err(e) = app_handle.emit("stream-end", "") {
+                            eprintln!("事件发送失败: {}", e);
+                        }
                     }
                 }
                 Err(e) => {
-                    let _ = app_handle.emit("stream-error", e.to_string());
+                    println!("流错误: {}", e);
+                    let _ = app_handle.emit_to("main","stream-error", e.to_string());
                 }
             }
         }
     });
 
     Ok(())
+}
+use std::io::{BufReader,BufRead};
+fn handle_stream_data(data: &[u8])->Option<Vec<String>> {
+    let mut ret:Vec<String> = vec![];
+    let reader = BufReader::new(data);
+    for line in reader.lines() {
+        let line = line.unwrap();
+        if line.starts_with("data: ") {
+            let content = line.trim_start_matches("data: ").trim();
+            if content == "[DONE]" {
+                return None;
+            }
+            // 解析JSON
+            match serde_json::from_str::<StreamData>(content) {
+                Ok(json) => {
+                    if !json.choices[0].delta.content.is_empty(){
+                        ret.push(json.choices[0].delta.content.clone());
+                    }else{
+                        continue;
+                    }
+                }
+                Err(e) => {
+                    eprintln!("JSON解析失败: {} | 原始内容: {}", e, content);
+                    continue;
+                }
+            }
+        };
+    }
+    Some(ret)
+    // while let Some(line) = buffer.next_line() {
+    //     if line.starts_with("data: ") {
+    //         let content = line.trim_start_matches("data: ").trim();
+
+    //         if content == "[DONE]" {
+    //             println!("收到结束信号");
+    //             break;
+    //         }
+
+    //         // 解析JSON
+    //         match serde_json::from_str::<Value>(content) {
+    //             Ok(json) => {
+    //                 println!("收到有效数据: {}", json);
+    //                 // 提取关键字段，例如：
+    //                 if let Some(choices) = json.get("choices") {
+    //                     println!("Choices: {}", choices);
+    //                 }
+    //             }
+    //             Err(e) => {
+    //                 eprintln!("JSON解析失败: {} | 原始内容: {}", e, content);
+    //             }
+    //         }
+    //     } else if !line.is_empty() {
+    //         // 处理可能的元数据行（如event类型）
+    //         println!("忽略非数据行: {}", line);
+    //     }
+    // }
 }

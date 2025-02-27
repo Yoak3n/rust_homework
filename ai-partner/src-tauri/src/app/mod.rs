@@ -1,4 +1,5 @@
 mod invoke;
+mod model;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder, Manager
@@ -17,7 +18,7 @@ pub fn run() {
             invoke::greet,
             invoke::create_dialog,
             invoke::get_app_install_path,
-            invoke::compeletion_stream
+            invoke::completions_stream
             ])
         .setup(|app| {
             

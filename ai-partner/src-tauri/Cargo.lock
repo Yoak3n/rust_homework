@@ -44,6 +44,7 @@ dependencies = [
  "tauri-plugin-window-state",
  "tokio",
  "tokio-macros",
+ "tokio-util",
 ]
 
 [[package]]
