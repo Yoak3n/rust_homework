@@ -67,26 +67,26 @@ use reqwest::{Client,header::{HeaderMap,HeaderValue,AUTHORIZATION}};
 use serde_json::json;
 
 #[tauri::command]
-pub async fn completions_stream(app_handle: tauri::AppHandle,id:usize) -> Result<(), String> {
+pub async fn completions_stream(app_handle: tauri::AppHandle,id:usize) -> Result<MessageItem, String> {
     let messages:Vec<MessageItem> = [
         MessageItem{
             role: "system".to_string(),
             content: "你是一个智能助手，请根据用户的问题，提供简洁、准确的回答".to_string(),
-            reasoning_content: None,
+            reasoning_content: "".to_string(),
         },
         MessageItem{
             role: "user".to_string(),
             content: "你好，你是谁？".to_string(),
-            reasoning_content: None,
+            reasoning_content: "".to_string(),
         }
     ].to_vec();
 
-    tokio::spawn(async move {
+    // tokio::spawn(async move {
         let client = Client::new();
         let mut headers = HeaderMap::new();
         headers.insert(
             AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", "sk-4a93b69ae22b4928b8db29f3cfc4dfbd"))
+            HeaderValue::from_str(&format!("Bearer {}", ""))
                 .expect("Invalid authorization header")
         );
         let payload = json!({
@@ -104,28 +104,30 @@ pub async fn completions_stream(app_handle: tauri::AppHandle,id:usize) -> Result
                 Err(e) => {
                     println!("请求失败: {}", e);
                     let _ = app_handle.emit("stream-error", e.to_string());
-                    return;
+                    return Err(e.to_string());
                 }
             };
         if response.status() != 200 {
             println!("请求失败: {}", response.status());
             let _ = app_handle.emit("stream-error", response.status().to_string());
-            return;
+            return Err(response.status().to_string());
         }
+        let mut full = MessageItem::default();
         let mut index:usize = 0;
         let mut stream = response.bytes_stream();
         while let Some(chunk) = stream.next().await {
             match chunk {
                 Ok(bytes) => {
+                    println!("收到数据: {}", String::from_utf8_lossy(&bytes));
                     if let Some(ret) = handle_stream_data(&bytes){
                         index += 1;
                         for item in ret{
+                            full.append(&item);
                             let payload = StreamEmitter::new(item, index, id);
                             if let Err(e) = app_handle.emit("stream-data", payload) {
                                 eprintln!("事件发送失败: {}", e);
                             }
                         }
-
                     }else{
                         println!("收到结束信号");
                         if let Err(e) = app_handle.emit("stream-end", id) {
@@ -139,9 +141,9 @@ pub async fn completions_stream(app_handle: tauri::AppHandle,id:usize) -> Result
                 }
             }
         }
-    });
+    // });
 
-    Ok(())
+    Ok(full)
 }
 use std::io::{BufReader,BufRead};
 fn handle_stream_data(data: &[u8])->Option<Vec<MessageType>> {
@@ -158,15 +160,9 @@ fn handle_stream_data(data: &[u8])->Option<Vec<MessageType>> {
             match serde_json::from_str::<StreamData>(content) {
                 Ok(json) => {
                     if let Some(c) = &json.choices[0].delta.content{
-                        if !c.is_empty(){
-                            ret.push(MessageType::Content(c.clone()));
-                            continue;
-                        }
+                        if !c.is_empty(){ret.push(MessageType::Content(c.clone()));}
                     }else if let Some(r) = &json.choices[0].delta.reasoning_content{
-                        if !r.is_empty(){
-                            ret.push(MessageType::ReasoningContent(r.clone()));
-                            continue;
-                        }
+                        if !r.is_empty(){ret.push(MessageType::ReasoningContent(r.clone()));}
                     }
                 }
                 Err(e) => {

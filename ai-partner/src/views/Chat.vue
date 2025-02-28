@@ -3,12 +3,13 @@ import ChatBoard from '../components/Chat/ChatBoard/index.vue'
 import { NIcon } from 'naive-ui';
 import {Reload,Send,Pause} from '@vicons/ionicons5'
 import type {AppSetting, MessageItem} from '../types/index'
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { querySetting } from '../api/db'
 import { throttle } from '../utils';
 import { invoke } from '@tauri-apps/api/core';
+import { listen,UnlistenFn } from '@tauri-apps/api/event';
 
-
+let ListenHub:Map<number,UnlistenFn> = new Map()
 const defaultMessages:Array<MessageItem> = [
   {role:'assistant', content:'你好，我是你的助手，有什么可以帮助你的吗？', text:'你好，我是你的助手，有什么可以帮助你的吗？',timestamp:0}
 ]
@@ -16,6 +17,7 @@ const defaultMessages:Array<MessageItem> = [
 let messages = ref<MessageItem[]>(defaultMessages)
 let input = ref<string>('')
 import emitter from '../bus';
+
 const setMessage = (mi:MessageItem) => {
   messages.value.push(mi)
   emitter.emit('scrollToBottom')
@@ -35,89 +37,43 @@ const submitUserMessage = () => {
 
 let generating = ref(false)
 let appSetting = ref<AppSetting>()
+let EndListen:UnlistenFn|null = null 
 onMounted(async () => {
+  EndListen = await  listen("stream-end",(e)=>{
+    const id = e.payload as number
+    const unlisten = ListenHub.get(id)
+    if (unlisten){unlisten()}
+  })
   appSetting.value = await querySetting()
 })
+onBeforeUnmount(()=>{
+  if(EndListen) EndListen()
+})
 const generateBotResponseStream = async () => {
-  const { base_url, key, model } = appSetting.value!
-  if (!base_url || !key || !model || base_url === "" || key === "" || model === "") {
-    updateHistoryStream({ role: "system-error", content: "请先配置API密钥和模型", text: "请先配置API密钥和模型" })
-    return
-  }
-  const ts  = Date.now()
-  const requestOptions = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: messages.value,
-      stream: true
-    })
-  }
-  try {
-    let api_target = ""
-    if (base_url.endsWith('v1')) {
-      api_target = `${base_url}/chat/completions`
-    } else {
-      api_target = base_url
-    }
-    if (!api_target.startsWith(`http[s]?://`)) {}
-    const res = await fetch(api_target, requestOptions)
-    if (!res.ok) throw new Error(res.statusText || "Something went wrong")
-    const reader = res.body!.getReader();
-    const decoder = new TextDecoder('utf-8');
-    let newAnswer: MessageItem = { role: "assistant", content: "", text: "" ,timestamp: ts,reasoning_content:""}
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) {generating.value = false;break;} // 流结束
-      generating.value = true
-      // 将二进制数据转换为文本
-      decoder.decode(value, { stream: true }).split('\n').forEach(chunk => {
-        if (chunk === '\n' || chunk === '' || chunk.includes('data: [DONE]')) return
-        const jsonAnswer = chunk.replace('data:', '').replace('data: ', '')
-        JSON.parse(jsonAnswer, (key, value) => {
-          if (key === 'created'){newAnswer.timestamp = value}
-          if (key === 'choices' && !value[0]["finish_reason"]) {
-            const answer = value[0].delta.content
-            newAnswer.content += answer
-            newAnswer.text += answer
-            updateHistoryStream(newAnswer)
-          }
-          return value;
-        })
-      });
-    }
-
-
-  } catch (err: any) {
-    const errMessage: MessageItem = { role: "system-error", content: err.message, text: err.message }
-    updateHistoryStream(errMessage)
-  }
+  const ts = Date.now()
+  let unlisten = await listen("stream-data",(e)=>{
+    console.log(e.payload)
+  })
+  ListenHub.set(ts,unlisten)
+  let unlistenEnd = await listen("stream-end",(e)=>{
+    console.log(e.payload)
+    unlisten()
+    unlistenEnd()
+    generating.value = false
+  })
+  let m:MessageItem = await invoke('completions_stream',{id:ts})
+  console.log(m);
+  updateHistoryStream(m )
 }
 const updateHistoryStream = (m: MessageItem) => {
-  try{
-    const index = messages.value.findIndex((item) =>item.timestamp == m.timestamp)
-    if (index != -1){
-      messages.value[index] = {...messages.value[index], content:m.content, text:m.text, reasoning_content:m.reasoning_content}
-    }else{
-      messages.value.push(m)
-    }
-    throttelEmitScrollToBottom()
-    emitter.emit('updateHistory', m)
-  }catch (err) {
-    console.log(err);
-  }
-
+  messages.value.push(m)
+  throttelEmitScrollToBottom()
 }
 const emitScrollToBottom = () => {
   emitter.emit('scrollToBottom')
 }
 
 const resetHistory = async() => {
-  await invoke('completions_stream',{id:1})
   messages.value.splice(0, messages.value.length,defaultMessages[0])
   // let unlisten = await listen("stream-data",(e)=>{
   //   console.log(e.payload)
