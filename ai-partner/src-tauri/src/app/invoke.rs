@@ -67,7 +67,7 @@ use reqwest::{Client,header::{HeaderMap,HeaderValue,AUTHORIZATION}};
 use serde_json::json;
 
 #[tauri::command]
-pub async fn completions_stream(app_handle: tauri::AppHandle) -> Result<(), String> {
+pub async fn completions_stream(app_handle: tauri::AppHandle,id:usize) -> Result<(), String> {
     let messages:Vec<MessageItem> = [
         MessageItem{
             role: "system".to_string(),
@@ -82,18 +82,17 @@ pub async fn completions_stream(app_handle: tauri::AppHandle) -> Result<(), Stri
     ].to_vec();
 
     tokio::spawn(async move {
-        println!("开始请求");
         let client = Client::new();
         let mut headers = HeaderMap::new();
         headers.insert(
             AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", ""))
+            HeaderValue::from_str(&format!("Bearer {}", "sk-4a93b69ae22b4928b8db29f3cfc4dfbd"))
                 .expect("Invalid authorization header")
         );
         let payload = json!({
             "stream": true,
             "messages": messages,
-            "model":"deepseek-v3"
+            "model":"deepseek-r1"
         });
         let response = match client
             .post("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions")
@@ -113,20 +112,23 @@ pub async fn completions_stream(app_handle: tauri::AppHandle) -> Result<(), Stri
             let _ = app_handle.emit("stream-error", response.status().to_string());
             return;
         }
+        let mut index:usize = 0;
         let mut stream = response.bytes_stream();
         while let Some(chunk) = stream.next().await {
             match chunk {
                 Ok(bytes) => {
                     if let Some(ret) = handle_stream_data(&bytes){
+                        index += 1;
                         for item in ret{
-                            println!("收到数据: {}",item);
-                            if let Err(e) = app_handle.emit("stream-data", item) {
+                            let payload = StreamEmitter::new(item, index, id);
+                            if let Err(e) = app_handle.emit("stream-data", payload) {
                                 eprintln!("事件发送失败: {}", e);
                             }
                         }
+
                     }else{
                         println!("收到结束信号");
-                        if let Err(e) = app_handle.emit("stream-end", "") {
+                        if let Err(e) = app_handle.emit("stream-end", id) {
                             eprintln!("事件发送失败: {}", e);
                         }
                     }
@@ -142,8 +144,8 @@ pub async fn completions_stream(app_handle: tauri::AppHandle) -> Result<(), Stri
     Ok(())
 }
 use std::io::{BufReader,BufRead};
-fn handle_stream_data(data: &[u8])->Option<Vec<String>> {
-    let mut ret:Vec<String> = vec![];
+fn handle_stream_data(data: &[u8])->Option<Vec<MessageType>> {
+    let mut ret:Vec<MessageType> = vec![];
     let reader = BufReader::new(data);
     for line in reader.lines() {
         let line = line.unwrap();
@@ -155,10 +157,16 @@ fn handle_stream_data(data: &[u8])->Option<Vec<String>> {
             // 解析JSON
             match serde_json::from_str::<StreamData>(content) {
                 Ok(json) => {
-                    if !json.choices[0].delta.content.is_empty(){
-                        ret.push(json.choices[0].delta.content.clone());
-                    }else{
-                        continue;
+                    if let Some(c) = &json.choices[0].delta.content{
+                        if !c.is_empty(){
+                            ret.push(MessageType::Content(c.clone()));
+                            continue;
+                        }
+                    }else if let Some(r) = &json.choices[0].delta.reasoning_content{
+                        if !r.is_empty(){
+                            ret.push(MessageType::ReasoningContent(r.clone()));
+                            continue;
+                        }
                     }
                 }
                 Err(e) => {
@@ -169,31 +177,4 @@ fn handle_stream_data(data: &[u8])->Option<Vec<String>> {
         };
     }
     Some(ret)
-    // while let Some(line) = buffer.next_line() {
-    //     if line.starts_with("data: ") {
-    //         let content = line.trim_start_matches("data: ").trim();
-
-    //         if content == "[DONE]" {
-    //             println!("收到结束信号");
-    //             break;
-    //         }
-
-    //         // 解析JSON
-    //         match serde_json::from_str::<Value>(content) {
-    //             Ok(json) => {
-    //                 println!("收到有效数据: {}", json);
-    //                 // 提取关键字段，例如：
-    //                 if let Some(choices) = json.get("choices") {
-    //                     println!("Choices: {}", choices);
-    //                 }
-    //             }
-    //             Err(e) => {
-    //                 eprintln!("JSON解析失败: {} | 原始内容: {}", e, content);
-    //             }
-    //         }
-    //     } else if !line.is_empty() {
-    //         // 处理可能的元数据行（如event类型）
-    //         println!("忽略非数据行: {}", line);
-    //     }
-    // }
 }

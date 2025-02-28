@@ -4,6 +4,10 @@ import { NIcon } from 'naive-ui';
 import {Reload,Send,Pause} from '@vicons/ionicons5'
 import type {AppSetting, MessageItem} from '../types/index'
 import { computed, onMounted, ref } from 'vue';
+import { querySetting } from '../api/db'
+import { throttle } from '../utils';
+import { invoke } from '@tauri-apps/api/core';
+
 
 const defaultMessages:Array<MessageItem> = [
   {role:'assistant', content:'你好，我是你的助手，有什么可以帮助你的吗？', text:'你好，我是你的助手，有什么可以帮助你的吗？',timestamp:0}
@@ -22,15 +26,13 @@ const inputHeigthString = computed(() => `${inputHeigth}px`)
 
 const submitUserMessage = () => {
   if(input.value.trim() == '') return
-  const m:MessageItem = {role:'user', content:input.value, text:input.value}
+  const m:MessageItem = {role:'user', content:input.value, text:input.value,timestamp:0}
   setMessage(m)
   input.value = ''
   generateBotResponseStream()
 }
 
-import { querySetting } from '../api/db'
-import { throttle } from '../utils';
-import { invoke } from '@tauri-apps/api/core';
+
 let generating = ref(false)
 let appSetting = ref<AppSetting>()
 onMounted(async () => {
@@ -113,11 +115,13 @@ const updateHistoryStream = (m: MessageItem) => {
 const emitScrollToBottom = () => {
   emitter.emit('scrollToBottom')
 }
-// const debounceEmitScrollToBottom = debounce(emitScrollToBottom, 300)
+
 const resetHistory = async() => {
-  let r = await invoke('completions_stream')
+  await invoke('completions_stream',{id:1})
   messages.value.splice(0, messages.value.length,defaultMessages[0])
-  console.log(r);
+  // let unlisten = await listen("stream-data",(e)=>{
+  //   console.log(e.payload)
+  // })
   
 }
 const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)

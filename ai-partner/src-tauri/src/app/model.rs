@@ -3,7 +3,8 @@ use serde::{Deserialize,Serialize};
 #[derive(Deserialize)]
 pub struct StreamMessageItem{
     pub role: Option<String>,
-    pub content: String,
+    pub content: Option<String>,
+    pub reasoning_content: Option<String>,
 
 
 }
@@ -26,10 +27,38 @@ pub struct StreamData{
     pub id: Option<String>,
     pub model: Option<String>,
 }
+#[derive(Serialize,Clone)]
+pub struct StreamEmitter{
+    pub message_type : String,
+    pub data: String,
+    pub index: usize,
+    pub id: usize,
+}
 #[allow(dead_code)]
 #[derive(Serialize,Deserialize,Clone)]
 pub struct MessageItem{
     pub role: String,
     pub content: String,
     pub reasoning_content: Option<String>,
+}
+
+pub enum MessageType {
+    ReasoningContent(String),
+    Content(String),
+}
+
+
+impl StreamEmitter{
+    pub fn new(message_type: MessageType, index: usize, id: usize) -> Self {
+        let (message_type,data) = match message_type {
+            MessageType::ReasoningContent(content) => ("reasoning_content".to_string(),content),
+            MessageType::Content(content) => ("content".to_string(),content)
+        };
+        Self{
+            message_type,
+            data,
+            index,
+            id
+        }
+    }
 }
