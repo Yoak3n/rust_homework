@@ -61,15 +61,6 @@ export const closeDialogWindow= async()=>{
 }
 
 
-import {invoke} from '@tauri-apps/api/core'
-import type {APISetting} from '../types/index'
-export  const getApiSetting= async():Promise<APISetting>=>{
-    const r:Array<string> = await invoke('invoke_api') 
-    if(r.length>0){
-        return {base_url:r[0],key:r[1],model:r[2]}
-    }
-    return {base_url:'',key:'',model:''}
-}
 
 type DebounceFunction<T extends any[]> = (...args: T) => void;
 

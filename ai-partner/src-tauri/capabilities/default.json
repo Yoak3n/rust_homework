@@ -15,8 +15,6 @@
     "core:window:allow-close",
     "core:window:allow-hide",
     "core:window:allow-show",
-    "core:window:allow-minimize",
-    "sql:default",
-    "sql:allow-execute"
+    "core:window:allow-minimize"
   ]
 }
