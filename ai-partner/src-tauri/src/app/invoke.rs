@@ -66,7 +66,7 @@ use futures::StreamExt;
 use reqwest::{Client,header::{HeaderMap,HeaderValue,AUTHORIZATION}};
 use serde_json::json;
 #[tauri::command]
-pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,AppState>,id:usize) -> Result<MessageItem, String> {
+pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,AppState>,id: usize) -> Result<MessageItem, String> {
     let api = state.config.try_lock().expect("get config of state error").api.clone();
     let messages:Vec<MessageItem> = [
         MessageItem{
@@ -81,69 +81,64 @@ pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,Ap
         }
     ].to_vec();
     println!("api: {:?}", api);
-    tokio::spawn(async move {
-        let client = Client::new();
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &api.key))
-                .expect("Invalid authorization header")
-        );
-        let payload = json!({
-            "stream": true,
-            "messages": messages,
-            "model":&api.model,
-        });
-        let response = match client
-            .post(&api.url)
-            .headers(headers)
-            .json(&payload)
-            .send()
-            .await {
-                Ok(res) => res,
-                Err(e) => {
-                    println!("请求失败: {}", e);
-                    let _ = app_handle.emit("stream-error", e.to_string());
-                    return Err(e.to_string());
-                }
-            };
-        if response.status() != 200 {
-            println!("请求失败: {}", response.status());
-            let _ = app_handle.emit("stream-error", response.status().to_string());
-            return Err(response.status().to_string());
-        }
-        let mut full = MessageItem::default();
-        let mut index:usize = 0;
-        let mut stream = response.bytes_stream();
-        while let Some(chunk) = stream.next().await {
-            match chunk {
-                Ok(bytes) => {
-                    println!("收到数据: {}", String::from_utf8_lossy(&bytes));
-                    if let Some(ret) = handle_stream_data(&bytes){
-                        index += 1;
-                        for item in ret{
-                            full.append(&item);
-                            let payload = StreamEmitter::new(item, index, id);
-                            if let Err(e) = app_handle.emit("stream-data", payload) {
-                                eprintln!("事件发送失败: {}", e);
-                            }
-                        }
-                    }else{
-                        println!("收到结束信号");
-                        if let Err(e) = app_handle.emit("stream-end", id) {
+    let client = Client::new();
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        AUTHORIZATION,
+        HeaderValue::from_str(&format!("Bearer {}", &api.key))
+            .expect("Invalid authorization header")
+    );
+    let payload = json!({
+        "stream": true,
+        "messages": messages,
+        "model":&api.model,
+    });
+    let response = match client
+        .post(&api.url)
+        .headers(headers)
+        .json(&payload)
+        .send()
+        .await {
+            Ok(res) => res,
+            Err(e) => {
+                println!("请求失败: {}", e);
+                let _ = app_handle.emit("stream-error", e.to_string());
+                return Err(e.to_string());
+            }
+        };
+    if response.status() != 200 {
+        println!("请求失败: {}", response.status());
+        let _ = app_handle.emit("stream-error", response.status().to_string());
+        return Err(response.status().to_string());
+    }
+    let mut full = MessageItem::default();
+    let mut index:usize = 0;
+    let mut stream = response.bytes_stream();
+    while let Some(chunk) = stream.next().await {
+        match chunk {
+            Ok(bytes) => {
+                if let Some(ret) = handle_stream_data(&bytes){
+                    index += 1;
+                    for item in ret{
+                        full.append(&item);
+                        let payload = StreamEmitter::new(item, index, id);
+                        if let Err(e) = app_handle.emit("stream-data", payload) {
                             eprintln!("事件发送失败: {}", e);
                         }
                     }
-                }
-                Err(e) => {
-                    println!("流错误: {}", e);
-                    let _ = app_handle.emit_to("main","stream-error", e.to_string());
+                }else{
+                    if let Err(e) = app_handle.emit("stream-end", id) {
+                        eprintln!("事件发送失败: {}", e);
+                    }
                 }
             }
+            Err(e) => {
+                println!("流错误: {}", e);
+                let _ = app_handle.emit_to("main","stream-error", e.to_string());
+            }
         }
-    });
-
-    Ok(())
+    }
+    Ok(full)
 }
 use std::io::{BufReader,BufRead};
 fn handle_stream_data(data: &[u8])->Option<Vec<MessageType>> {

@@ -39,7 +39,7 @@ let generating = ref(false)
 let appSetting = ref<AppSetting>()
 let EndListen:UnlistenFn|null = null 
 onMounted(async () => {
-  EndListen = await  listen("stream-end",(e)=>{
+  EndListen = await listen("stream-end",(e)=>{
     const id = e.payload as number
     const unlisten = ListenHub.get(id)
     if (unlisten){unlisten()}
@@ -55,15 +55,15 @@ const generateBotResponseStream = async () => {
     console.log(e.payload)
   })
   ListenHub.set(ts,unlisten)
-  let unlistenEnd = await listen("stream-end",(e)=>{
-    console.log(e.payload)
+  let unlistenEnd = await listen("stream-end",()=>{
     unlisten()
     unlistenEnd()
+    ListenHub.delete(ts)
     generating.value = false
   })
   let m:MessageItem = await invoke('completions_stream',{id:ts})
   console.log(m);
-  updateHistoryStream(m )
+  updateHistoryStream(m)
 }
 const updateHistoryStream = (m: MessageItem) => {
   messages.value.push(m)
@@ -86,7 +86,7 @@ const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)
 </script>
 <template>
   <div class="chat-view">
-    <ChatBoard :messages="messages" :smoothing="appSetting?.smoothing" :model="appSetting?.model"/>
+    <ChatBoard :messages="messages" :smoothing="appSetting?.smooth" :model="appSetting?.api.model"/>
     <form class="chat-input" @submit="(e) =>{
       e.preventDefault()
       submitUserMessage()

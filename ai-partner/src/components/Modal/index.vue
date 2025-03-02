@@ -11,7 +11,6 @@
 import { NModal,NCard } from 'naive-ui';
 import SettingView from './Setting.vue'
 import AboutView from '../../components/Infomation/About/index.vue'
-import { onMounted } from 'vue';
 const props = defineProps({
     switchCallback:{
         type:Function,
@@ -25,9 +24,6 @@ const props = defineProps({
         type:String,
         default:''
     }
-})
-onMounted(()=>{
-    console.log(props.modalKey)
 })
 </script>
 
