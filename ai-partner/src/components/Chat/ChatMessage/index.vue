@@ -4,11 +4,14 @@
         <Bot v-if="message.role === 'assistant' || message.role === 'system-error'" />
 
         <p class="message-text">
-            <span class="thinking">
-                <div class="thinking-text" v-if="message.role === 'assistant'">
+            <div class="thinking" v-if="message.role === 'assistant'">
+                <div class="thinking-time" >
                     思考时间：{{ thinkingTime}}秒
                 </div>
-            </span>
+                <div class="thinking-text">
+                    {{ message.reasoning_content }}
+                </div>
+            </div>
             <MarkdownRender :source="displayText" v-if="smoothing" class="smoothing-render" />
             <MarkdownRender :source="message.content!" v-else class="native-render" />
         </p>
@@ -118,8 +121,10 @@ watch(enableRunning, (n) => {
 
     .thinking {
         width: 100%;
-        height: 100%;
         display: flex;
+        position: absolute;
+        top:-50%;
+        background-color: #ccc;
         .thinking-text {
             font-size: 0.8rem;
         }
