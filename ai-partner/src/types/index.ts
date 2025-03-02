@@ -5,11 +5,12 @@ export interface MessageItem {
     text: string;
     timestamp?: number;
 }
-export interface AppSetting  extends APISetting {
-    smoothing: boolean;
+export interface AppSetting  {
+    smooth: boolean;
+    api: API;
 }
-export interface APISetting {
-    base_url: string;
+export interface API {
+    url: string;
     key: string;
     model: string;
 }

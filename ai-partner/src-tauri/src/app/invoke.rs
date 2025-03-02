@@ -4,9 +4,9 @@ pub fn greet(name: &str) -> String {
 }
 
 use tauri::{
-    AppHandle, Error, Manager, WebviewUrl, WebviewWindowBuilder,PhysicalSize,
+    AppHandle, Error, Manager, PhysicalSize, State, WebviewUrl, WebviewWindowBuilder
 };
-use super::model::*;
+use super::{model::*, state::AppState};
 #[tauri::command]
 pub async fn create_dialog(app_handle: AppHandle) -> Result<(), Error> {
     match app_handle.get_webview_window("dialog")  {
@@ -65,9 +65,9 @@ use tauri::Emitter;
 use futures::StreamExt;
 use reqwest::{Client,header::{HeaderMap,HeaderValue,AUTHORIZATION}};
 use serde_json::json;
-
 #[tauri::command]
-pub async fn completions_stream(app_handle: tauri::AppHandle) -> Result<(), String> {
+pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,AppState>) -> Result<(), String> {
+    let api = state.config.try_lock().expect("get config of state error").api.clone();
     let messages:Vec<MessageItem> = [
         MessageItem{
             role: "system".to_string(),
@@ -80,23 +80,22 @@ pub async fn completions_stream(app_handle: tauri::AppHandle) -> Result<(), Stri
             reasoning_content: None,
         }
     ].to_vec();
-
+    println!("api: {:?}", api);
     tokio::spawn(async move {
-        println!("开始请求");
         let client = Client::new();
         let mut headers = HeaderMap::new();
         headers.insert(
             AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", ""))
+            HeaderValue::from_str(&format!("Bearer {}", &api.key))
                 .expect("Invalid authorization header")
         );
         let payload = json!({
             "stream": true,
             "messages": messages,
-            "model":"deepseek-v3"
+            "model":&api.model,
         });
         let response = match client
-            .post("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions")
+            .post(&api.url)
             .headers(headers)
             .json(&payload)
             .send()
@@ -196,4 +195,32 @@ fn handle_stream_data(data: &[u8])->Option<Vec<String>> {
     //         println!("忽略非数据行: {}", line);
     //     }
     // }
+}
+
+
+// use crate::store::config::{Configuration,update_config};
+use crate::store::setting::Configuration;
+#[tauri::command]
+pub async fn set_config(state : State<'_,AppState>,new_config: Configuration) -> Result<(), String> {
+    // update_config(|c|{
+    if let Err(e) = Configuration::update_config(move|config|
+        {
+            config.api.key = new_config.api.key.clone();
+            config.api.url = new_config.api.url.clone();
+            config.api.model = new_config.api.model.clone();
+            config.smooth = new_config.smooth.clone();
+            let mut c = state.config.try_lock().expect("set config lock error");
+            *c = config.clone();
+        })
+    {
+        return Err(e.to_string());
+    }
+    // });
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn get_config(state : State<'_,AppState>) -> Result<Configuration, String> {
+    let config =  state.config.try_lock().expect("get config lock error");
+    Ok(config.clone())
 }

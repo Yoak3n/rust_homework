@@ -8,10 +8,10 @@
         :style="{ width: '600px', textAlign: 'start' }"
             label-align="left">
             <n-form-item label="API_base">
-                <n-input placeholder="请输入API请求地址" v-model:value="model!.base_url" />
+                <n-input placeholder="请输入API请求地址" v-model:value="model!.api.url" />
             </n-form-item>
             <n-form-item label="API_key">
-                <n-input placeholder="请输入API请求key" type="password" show-password-on="click" v-model:value="model!.key" >
+                <n-input placeholder="请输入API请求key" type="password" show-password-on="click" v-model:value="model!.api.key" :input-props="{autocomplete:'off'}" >
                     <template #password-visible-icon>
                         <n-icon>
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -39,11 +39,11 @@
                 </n-input>
             </n-form-item>
             <n-form-item label="model">
-                <n-input placeholder="请输入模型名称"  v-model:value="model!.model"/>
+                <n-input placeholder="请输入模型名称"  v-model:value="model!.api.model"/>
             </n-form-item>
             <n-divider></n-divider>
             <n-form-item label="smooth">
-                <n-switch v-model:value="model!.smoothing" />
+                <n-switch v-model:value="model!.smooth" />
             </n-form-item>
             <n-form-item>
                 <n-button type="primary" style="margin: 0 auto;width:20%" @click="saveSetting">确定</n-button>
@@ -57,7 +57,13 @@ import { ref,onMounted } from 'vue';
 import { NForm, NFormItem, NInput, NButton, NIcon,NSwitch,NDivider } from 'naive-ui';
 import type { AppSetting } from '../../types';
 import {updateAllSetting,querySetting} from '../../api/db'
-let model = ref<AppSetting|null>({base_url: '', key: '', model: '',smoothing:false});
+let model = ref<AppSetting|null>({
+    api:{
+        url: '', key: '', model: ''
+    },
+    smooth:false
+}
+);
 onMounted(async()=>{
     const s = await querySetting();
     if(s){

@@ -5,7 +5,7 @@
 
         <p class="message-text">
             <span class="thinking">
-                <div class="thinking-text">
+                <div class="thinking-text" v-if="message.role === 'assistant'">
                     思考时间：{{ thinkingTime}}秒
                 </div>
             </span>

@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import fs from 'fs'
 
-// @ts-expect-error process is a nodejs global
+
 const host = process.env.TAURI_DEV_HOST;
 const versionJson = {
   "compileTime": new Date().getTime(),
@@ -20,7 +20,7 @@ export default defineConfig(async () => ({
   clearScreen: false,
   // 2. tauri expects a fixed port, fail if that port is not available
   server: {
-    port: 10425,
+    port: 10420,
     strictPort: true,
     host: host || false,
     hmr: host

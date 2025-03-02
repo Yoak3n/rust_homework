@@ -1,0 +1,5 @@
+[cargo-watch]  # 正确配置段
+ignore = [
+    "src-tauri/setting.yaml",
+    "**/temp/*"
+]
