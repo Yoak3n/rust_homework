@@ -3,8 +3,13 @@ import ChatBoard from '../components/Chat/ChatBoard/index.vue'
 import { NIcon } from 'naive-ui';
 import {Reload,Send,Pause} from '@vicons/ionicons5'
 import type {AppSetting, MessageItem} from '../types/index'
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { querySetting } from '../api/db'
+import { throttle } from '../utils';
+import { invoke } from '@tauri-apps/api/core';
+import { listen,UnlistenFn } from '@tauri-apps/api/event';
 
+let ListenHub:Map<number,UnlistenFn> = new Map()
 const defaultMessages:Array<MessageItem> = [
   {role:'assistant', content:'你好，我是你的助手，有什么可以帮助你的吗？', text:'你好，我是你的助手，有什么可以帮助你的吗？',timestamp:0}
 ]
@@ -12,6 +17,7 @@ const defaultMessages:Array<MessageItem> = [
 let messages = ref<MessageItem[]>(defaultMessages)
 let input = ref<string>('')
 import emitter from '../bus';
+
 const setMessage = (mi:MessageItem) => {
   messages.value.push(mi)
   emitter.emit('scrollToBottom')
@@ -22,46 +28,56 @@ const inputHeigthString = computed(() => `${inputHeigth}px`)
 
 const submitUserMessage = () => {
   if(input.value.trim() == '') return
-  const m:MessageItem = {role:'user', content:input.value, text:input.value}
+  const m:MessageItem = {role:'user', content:input.value, text:input.value,timestamp:0}
   setMessage(m)
   input.value = ''
   generateBotResponseStream()
 }
 
-import { querySetting } from '../api/db'
-import { throttle } from '../utils';
-import { invoke } from '@tauri-apps/api/core';
+
 let generating = ref(false)
 let appSetting = ref<AppSetting>()
+let EndListen:UnlistenFn|null = null 
 onMounted(async () => {
+  EndListen = await  listen("stream-end",(e)=>{
+    const id = e.payload as number
+    const unlisten = ListenHub.get(id)
+    if (unlisten){unlisten()}
+  })
   appSetting.value = await querySetting()
 })
+onBeforeUnmount(()=>{
+  if(EndListen) EndListen()
+})
 const generateBotResponseStream = async () => {
- 
+  const ts = Date.now()
+  let unlisten = await listen("stream-data",(e)=>{
+    console.log(e.payload)
+  })
+  ListenHub.set(ts,unlisten)
+  let unlistenEnd = await listen("stream-end",(e)=>{
+    console.log(e.payload)
+    unlisten()
+    unlistenEnd()
+    generating.value = false
+  })
+  let m:MessageItem = await invoke('completions_stream',{id:ts})
+  console.log(m);
+  updateHistoryStream(m )
 }
 const updateHistoryStream = (m: MessageItem) => {
-  try{
-    const index = messages.value.findIndex((item) =>item.timestamp == m.timestamp)
-    if (index != -1){
-      messages.value[index] = {...messages.value[index], content:m.content, text:m.text, reasoning_content:m.reasoning_content}
-    }else{
-      messages.value.push(m)
-    }
-    throttelEmitScrollToBottom()
-    emitter.emit('updateHistory', m)
-  }catch (err) {
-    console.log(err);
-  }
-
+  messages.value.push(m)
+  throttelEmitScrollToBottom()
 }
 const emitScrollToBottom = () => {
   emitter.emit('scrollToBottom')
 }
-// const debounceEmitScrollToBottom = debounce(emitScrollToBottom, 300)
+
 const resetHistory = async() => {
-  let r = invoke('get_config')
   messages.value.splice(0, messages.value.length,defaultMessages[0])
-  console.log(r);
+  // let unlisten = await listen("stream-data",(e)=>{
+  //   console.log(e.payload)
+  // })
   
 }
 const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)
@@ -70,7 +86,7 @@ const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)
 </script>
 <template>
   <div class="chat-view">
-    <ChatBoard :messages="messages" :smoothing="appSetting?.smooth" :model="appSetting?.model"/>
+    <ChatBoard :messages="messages" :smoothing="appSetting?.smoothing" :model="appSetting?.model"/>
     <form class="chat-input" @submit="(e) =>{
       e.preventDefault()
       submitUserMessage()

@@ -66,18 +66,18 @@ use futures::StreamExt;
 use reqwest::{Client,header::{HeaderMap,HeaderValue,AUTHORIZATION}};
 use serde_json::json;
 #[tauri::command]
-pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,AppState>) -> Result<(), String> {
+pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,AppState>,id:usize) -> Result<MessageItem, String> {
     let api = state.config.try_lock().expect("get config of state error").api.clone();
     let messages:Vec<MessageItem> = [
         MessageItem{
             role: "system".to_string(),
             content: "你是一个智能助手，请根据用户的问题，提供简洁、准确的回答".to_string(),
-            reasoning_content: None,
+            reasoning_content: "".to_string(),
         },
         MessageItem{
             role: "user".to_string(),
             content: "你好，你是谁？".to_string(),
-            reasoning_content: None,
+            reasoning_content: "".to_string(),
         }
     ].to_vec();
     println!("api: {:?}", api);
@@ -104,28 +104,33 @@ pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,Ap
                 Err(e) => {
                     println!("请求失败: {}", e);
                     let _ = app_handle.emit("stream-error", e.to_string());
-                    return;
+                    return Err(e.to_string());
                 }
             };
         if response.status() != 200 {
             println!("请求失败: {}", response.status());
             let _ = app_handle.emit("stream-error", response.status().to_string());
-            return;
+            return Err(response.status().to_string());
         }
+        let mut full = MessageItem::default();
+        let mut index:usize = 0;
         let mut stream = response.bytes_stream();
         while let Some(chunk) = stream.next().await {
             match chunk {
                 Ok(bytes) => {
+                    println!("收到数据: {}", String::from_utf8_lossy(&bytes));
                     if let Some(ret) = handle_stream_data(&bytes){
+                        index += 1;
                         for item in ret{
-                            println!("收到数据: {}",item);
-                            if let Err(e) = app_handle.emit("stream-data", item) {
+                            full.append(&item);
+                            let payload = StreamEmitter::new(item, index, id);
+                            if let Err(e) = app_handle.emit("stream-data", payload) {
                                 eprintln!("事件发送失败: {}", e);
                             }
                         }
                     }else{
                         println!("收到结束信号");
-                        if let Err(e) = app_handle.emit("stream-end", "") {
+                        if let Err(e) = app_handle.emit("stream-end", id) {
                             eprintln!("事件发送失败: {}", e);
                         }
                     }
@@ -141,8 +146,8 @@ pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,Ap
     Ok(())
 }
 use std::io::{BufReader,BufRead};
-fn handle_stream_data(data: &[u8])->Option<Vec<String>> {
-    let mut ret:Vec<String> = vec![];
+fn handle_stream_data(data: &[u8])->Option<Vec<MessageType>> {
+    let mut ret:Vec<MessageType> = vec![];
     let reader = BufReader::new(data);
     for line in reader.lines() {
         let line = line.unwrap();
@@ -154,10 +159,10 @@ fn handle_stream_data(data: &[u8])->Option<Vec<String>> {
             // 解析JSON
             match serde_json::from_str::<StreamData>(content) {
                 Ok(json) => {
-                    if !json.choices[0].delta.content.is_empty(){
-                        ret.push(json.choices[0].delta.content.clone());
-                    }else{
-                        continue;
+                    if let Some(c) = &json.choices[0].delta.content{
+                        if !c.is_empty(){ret.push(MessageType::Content(c.clone()));}
+                    }else if let Some(r) = &json.choices[0].delta.reasoning_content{
+                        if !r.is_empty(){ret.push(MessageType::ReasoningContent(r.clone()));}
                     }
                 }
                 Err(e) => {
