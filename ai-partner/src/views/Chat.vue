@@ -7,9 +7,8 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { querySetting } from '../api/db'
 import { throttle } from '../utils';
 import { invoke } from '@tauri-apps/api/core';
-import { listen,UnlistenFn } from '@tauri-apps/api/event';
 import emitter from '../bus';
-import {getUnlistenFnAndOff} from '../bus'
+import {unListenAll} from '../bus'
 
 const defaultMessages:Array<MessageItem> = [
   {
@@ -42,33 +41,27 @@ const submitUserMessage = () => {
 
 let generating = ref(false)
 let appSetting = ref<AppSetting>()
-let EndListen:UnlistenFn|null = null 
 onMounted(async () => {
-  EndListen = await listen("stream-end",(e)=>{
-    const id = e.payload as number
-    getUnlistenFnAndOff(id)
-  })
   appSetting.value = await querySetting()
 })
 onBeforeUnmount(()=>{
-  if(EndListen) EndListen()
+  unListenAll()
 })
 const generateBotResponseStream = async () => {
   const ts = Date.now()
-  let unlisten = await listen("stream-data",(e)=>{
-    console.log(e.payload)
-  })
-  let unlistenEnd = await listen("stream-end",()=>{
-    unlisten()
-    unlistenEnd()
-    generating.value = false
-  })
+  const newMessage = {role:'assistant', content:'', timestamp:ts}
+  setMessage(newMessage)
   let m:MessageItem = await invoke('completions_stream',{id:ts})
   console.log(m);
   updateHistoryStream(m)
 }
 const updateHistoryStream = (m: MessageItem) => {
-  messages.value.push(m)
+  const index = messages.value.findIndex((item) =>item.timestamp == m.timestamp)
+  if (index != -1){
+    messages.value[index] = {...messages.value[index], content:m.content, reasoning_content:m.reasoning_content}
+  }else{
+    messages.value.push(m)
+  }
   throttelEmitScrollToBottom()
 }
 const emitScrollToBottom = () => {

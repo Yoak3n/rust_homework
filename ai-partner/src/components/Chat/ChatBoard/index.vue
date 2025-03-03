@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { nextTick,  onMounted, ref,onUnmounted,PropType} from 'vue'
 import ChatMessage from '../ChatMessage/index.vue'
+import ChatMessageId from '../ChatMessageId/index.vue'
 import type { MessageItem } from '../../../types/index'
 import emitter from '../../../bus';
 let chatBody = ref<HTMLInputElement | null>(null)
@@ -53,7 +54,7 @@ let props = defineProps(
   <div class="chat-board" ref="chatBody">
     <h1>{{model}}</h1>
     <div class="chat-body">
-      <ChatMessage v-for="m in props.messages" :message="m" :smoothing="smoothing" :key="m.timestamp"/>
+      <ChatMessageId v-for="message in props.messages" :message="message" ></ChatMessageId>
     </div>
   </div>
 </template>
