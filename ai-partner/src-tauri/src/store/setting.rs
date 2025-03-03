@@ -55,14 +55,14 @@ impl Configuration {
             .map_err(|e| -> Box<dyn std::error::Error> { e.into() })
             .and_then(|data| {
                 println!("Saving config: {:?}", data);
-                write(format!("{}.yaml",DEFAULT_CONFIG),data)
+                write(format!("{}.yaml", DEFAULT_CONFIG),data)
                 .map_err(|e:std::io::Error|e.into())
             }){
-            Ok(_) => return Ok(()),
-            Err(e) => {
-                *config = old_config;
-                eprintln!("Failed to save config: {}", e);
-                return Err(e);
+                Ok(_) => return Ok(()),
+                Err(e) => {
+                    *config = old_config;
+                    eprintln!("Failed to save config: {}", e);
+                    return Err(e);
             }
         }
     }

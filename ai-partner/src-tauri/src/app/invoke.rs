@@ -80,7 +80,7 @@ pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,Ap
             reasoning_content: "".to_string(),
         }
     ].to_vec();
-    println!("api: {:?}", api);
+    println!("api: {:#?}", api);
     let client = Client::new();
     let mut headers = HeaderMap::new();
     headers.insert(

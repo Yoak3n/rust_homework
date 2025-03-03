@@ -1,19 +1,18 @@
 <template>
     <div
         :class="`message ${message.role === 'assistant' ? 'bot' : message.role === 'system-error' ? 'error' : 'user'}-message`">
-        <Bot v-if="message.role === 'assistant' || message.role === 'system-error'" />
-
+        <img src="../../../assets/bot.svg" v-if="message.role === 'assistant' || message.role === 'system-error'" />
         <p class="message-text">
-            <div class="thinking" v-if="message.role === 'assistant'">
-                <div class="thinking-time" >
-                    思考时间：{{ thinkingTime}}秒
-                </div>
-                <div class="thinking-text">
-                    {{ message.reasoning_content }}
-                </div>
+        <div class="thinking" v-if="message.role === 'assistant'">
+            <div class="thinking-time">
+                思考时间：{{ thinkingTime }}秒
             </div>
-            <MarkdownRender :source="displayText" v-if="smoothing" class="smoothing-render" />
-            <MarkdownRender :source="message.content!" v-else class="native-render" />
+            <div class="thinking-text">
+                {{ message.reasoning_content }}
+            </div>
+        </div>
+        <MarkdownRender :source="displayText" v-if="smoothing" class="smoothing-render" />
+        <MarkdownRender :source="message.content!" v-else class="native-render" />
         </p>
     </div>
 </template>
@@ -23,7 +22,6 @@ import { ref, onMounted, watch, onBeforeUnmount } from 'vue';
 import type { PropType } from 'vue'
 import MarkdownRender from '../../Markdown/index.vue'
 import type { MessageItem } from '../../../types/index'
-import Bot from '../../Icon/Bot.vue'
 import emitter from '../../../bus';
 let thinkingTime = ref<number>(0)
 let thingkingTimerRef = ref<number | null>(null)
@@ -102,14 +100,6 @@ watch(enableRunning, (n) => {
     }
     return () => clearInterval(timerRef.value!)
 })
-// watch(
-//     ()=>props.message,
-//     (n)=>{
-//         displayText.value = n.content!
-//     },{
-//         deep: true
-//     }
-// )
 
 </script>
 
@@ -120,11 +110,14 @@ watch(enableRunning, (n) => {
     gap: 11px;
 
     .thinking {
+        padding: 0;
         width: 100%;
         display: flex;
         position: absolute;
-        top:-50%;
+        top: -50%;
+        left: 0;
         background-color: #ccc;
+
         .thinking-text {
             font-size: 0.8rem;
         }

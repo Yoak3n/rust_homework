@@ -2,7 +2,6 @@ export interface MessageItem {
     role: string;
     content?: string;
     reasoning_content?:string;
-    text: string;
     timestamp?: number;
 }
 export interface AppSetting  {
@@ -13,4 +12,11 @@ export interface API {
     url: string;
     key: string;
     model: string;
+}
+
+export interface Segment {
+    raw:string;
+    index?: number;
+    hash: number;
+    html?:string
 }

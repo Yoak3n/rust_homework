@@ -8,15 +8,20 @@ import { querySetting } from '../api/db'
 import { throttle } from '../utils';
 import { invoke } from '@tauri-apps/api/core';
 import { listen,UnlistenFn } from '@tauri-apps/api/event';
+import emitter from '../bus';
+import {getUnlistenFnAndOff} from '../bus'
 
-let ListenHub:Map<number,UnlistenFn> = new Map()
 const defaultMessages:Array<MessageItem> = [
-  {role:'assistant', content:'你好，我是你的助手，有什么可以帮助你的吗？', text:'你好，我是你的助手，有什么可以帮助你的吗？',timestamp:0}
+  {
+    role:'assistant', 
+    content:'你好，我是你的助手，有什么可以帮助你的吗？', 
+    timestamp:0
+  }
 ]
 
 let messages = ref<MessageItem[]>(defaultMessages)
 let input = ref<string>('')
-import emitter from '../bus';
+
 
 const setMessage = (mi:MessageItem) => {
   messages.value.push(mi)
@@ -28,7 +33,7 @@ const inputHeigthString = computed(() => `${inputHeigth}px`)
 
 const submitUserMessage = () => {
   if(input.value.trim() == '') return
-  const m:MessageItem = {role:'user', content:input.value, text:input.value,timestamp:0}
+  const m:MessageItem = {role:'user', content:input.value, timestamp:0}
   setMessage(m)
   input.value = ''
   generateBotResponseStream()
@@ -41,8 +46,7 @@ let EndListen:UnlistenFn|null = null
 onMounted(async () => {
   EndListen = await listen("stream-end",(e)=>{
     const id = e.payload as number
-    const unlisten = ListenHub.get(id)
-    if (unlisten){unlisten()}
+    getUnlistenFnAndOff(id)
   })
   appSetting.value = await querySetting()
 })
@@ -54,11 +58,9 @@ const generateBotResponseStream = async () => {
   let unlisten = await listen("stream-data",(e)=>{
     console.log(e.payload)
   })
-  ListenHub.set(ts,unlisten)
   let unlistenEnd = await listen("stream-end",()=>{
     unlisten()
     unlistenEnd()
-    ListenHub.delete(ts)
     generating.value = false
   })
   let m:MessageItem = await invoke('completions_stream',{id:ts})
@@ -75,10 +77,6 @@ const emitScrollToBottom = () => {
 
 const resetHistory = async() => {
   messages.value.splice(0, messages.value.length,defaultMessages[0])
-  // let unlisten = await listen("stream-data",(e)=>{
-  //   console.log(e.payload)
-  // })
-  
 }
 const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)
 
