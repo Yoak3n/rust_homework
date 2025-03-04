@@ -49,10 +49,12 @@ onBeforeUnmount(()=>{
 })
 const generateBotResponseStream = async () => {
   const ts = Date.now()
+  const currentMessages:any = []
+  messages.value.forEach((item) => currentMessages.push({role:item.role, content:item.content,reasoning_content:''}))
   const newMessage = {role:'assistant', content:'', timestamp:ts}
   setMessage(newMessage)
-  let m:MessageItem = await invoke('completions_stream',{id:ts})
-  console.log(m);
+  let m:MessageItem = await invoke('completions_stream',{id:ts,messages:currentMessages})
+  m.timestamp = ts
   updateHistoryStream(m)
 }
 const updateHistoryStream = (m: MessageItem) => {
@@ -68,11 +70,9 @@ const emitScrollToBottom = () => {
   emitter.emit('scrollToBottom')
 }
 
-const resetHistory = async() => {
-  messages.value.splice(0, messages.value.length,defaultMessages[0])
-}
-const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)
+const resetHistory = async() =>messages.value.splice(0, messages.value.length, defaultMessages[0])
 
+const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)
 
 </script>
 <template>

@@ -66,20 +66,20 @@ use futures::StreamExt;
 use reqwest::{Client,header::{HeaderMap,HeaderValue,AUTHORIZATION}};
 use serde_json::json;
 #[tauri::command]
-pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,AppState>,id: usize) -> Result<MessageItem, String> {
+pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,AppState>,id: usize,messages:Vec<MessageItem>) -> Result<MessageItem, String> {
     let api = state.config.try_lock().expect("get config of state error").api.clone();
-    let messages:Vec<MessageItem> = [
-        MessageItem{
-            role: "system".to_string(),
-            content: "你是一个智能助手，请根据用户的问题，提供简洁、准确的回答".to_string(),
-            reasoning_content: "".to_string(),
-        },
-        MessageItem{
-            role: "user".to_string(),
-            content: "你好，你是谁？".to_string(),
-            reasoning_content: "".to_string(),
-        }
-    ].to_vec();
+    // let messages:Vec<MessageItem> = [
+    //     MessageItem{
+    //         role: "system".to_string(),
+    //         content: "你是一个智能助手，请根据用户的问题，提供简洁、准确的回答".to_string(),
+    //         reasoning_content: "".to_string(),
+    //     },
+    //     MessageItem{
+    //         role: "user".to_string(),
+    //         content: "你好，你是谁？".to_string(),
+    //         reasoning_content: "".to_string(),
+    //     }
+    // ].to_vec();
     println!("api: {:#?}", api);
     let client = Client::new();
     let mut headers = HeaderMap::new();
@@ -115,10 +115,10 @@ pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,Ap
     let mut index:usize = 0;
     let mut stream = response.bytes_stream();
     while let Some(chunk) = stream.next().await {
+        index += 1;
         match chunk {
             Ok(bytes) => {
                 if let Some(ret) = handle_stream_data(&bytes){
-                    index += 1;
                     for item in ret{
                         full.append(&item);
                         let payload = StreamEmitter::new(item, index, id);
@@ -127,7 +127,9 @@ pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,Ap
                         }
                     }
                 }else{
-                    if let Err(e) = app_handle.emit("stream-end", id) {
+                    let item = MessageType::DONE;
+                    let payload = StreamEmitter::new(item, index, id);
+                    if let Err(e) = app_handle.emit("stream-data", payload) {
                         eprintln!("事件发送失败: {}", e);
                     }
                 }
@@ -168,33 +170,6 @@ fn handle_stream_data(data: &[u8])->Option<Vec<MessageType>> {
         };
     }
     Some(ret)
-    // while let Some(line) = buffer.next_line() {
-    //     if line.starts_with("data: ") {
-    //         let content = line.trim_start_matches("data: ").trim();
-
-    //         if content == "[DONE]" {
-    //             println!("收到结束信号");
-    //             break;
-    //         }
-
-    //         // 解析JSON
-    //         match serde_json::from_str::<Value>(content) {
-    //             Ok(json) => {
-    //                 println!("收到有效数据: {}", json);
-    //                 // 提取关键字段，例如：
-    //                 if let Some(choices) = json.get("choices") {
-    //                     println!("Choices: {}", choices);
-    //                 }
-    //             }
-    //             Err(e) => {
-    //                 eprintln!("JSON解析失败: {} | 原始内容: {}", e, content);
-    //             }
-    //         }
-    //     } else if !line.is_empty() {
-    //         // 处理可能的元数据行（如event类型）
-    //         println!("忽略非数据行: {}", line);
-    //     }
-    // }
 }
 
 

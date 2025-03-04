@@ -33,9 +33,9 @@ impl MessageItem {
             },
             MessageType::ReasoningContent(r)=>{
                 self.reasoning_content.push_str(r);
-            
-        }
-    }
+            },
+            MessageType::DONE => {}
+        }    
     }
 }
 
@@ -43,6 +43,7 @@ impl MessageItem {
 pub enum MessageType {
     ReasoningContent(String),
     Content(String),
+    DONE,
 }
 #[allow(dead_code)]
 #[derive(Deserialize)]
@@ -50,8 +51,6 @@ pub struct StreamMessageItem{
     pub role: Option<String>,
     pub content: Option<String>,
     pub reasoning_content: Option<String>,
-
-
 }
 #[allow(dead_code)]
 #[derive(Deserialize)]
@@ -84,7 +83,8 @@ impl StreamEmitter{
     pub fn new(message_type: MessageType, index: usize, id: usize) -> Self {
         let (message_type,data) = match message_type {
             MessageType::ReasoningContent(content) => ("reasoning_content".to_string(),content),
-            MessageType::Content(content) =>  ("content".to_string(),content)
+            MessageType::Content(content) =>  ("content".to_string(),content),
+            MessageType::DONE => ("DONE".to_string(),"".to_string())
         };
         Self{
             message_type,
