@@ -90,7 +90,6 @@ const menuOptions: Array<MenuOption> = [
 <style lang="less">
 .home-wrapper {
     height: 100%;
-
     .n-layout {
         height: 100%;
     }

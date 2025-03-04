@@ -42,9 +42,9 @@
                 <n-input placeholder="请输入模型名称"  v-model:value="model!.api.model"/>
             </n-form-item>
             <n-divider></n-divider>
-            <n-form-item label="smooth">
-                <n-switch v-model:value="model!.smooth" />
-            </n-form-item>
+            <n-form-item label="smooth (invalid)" >
+                <n-switch v-model:value="model!.smooth" disabled/>
+            </n-form-item>                
             <n-form-item>
                 <n-button type="primary" style="margin: 0 auto;width:20%" @click="saveSetting">确定</n-button>
             </n-form-item>
@@ -56,6 +56,7 @@
 import { ref,onMounted } from 'vue';
 import { NForm, NFormItem, NInput, NButton, NIcon,NSwitch,NDivider } from 'naive-ui';
 import type { AppSetting } from '../../types';
+import { useApiStore } from '../../store';
 import {updateAllSetting,querySetting} from '../../api/db'
 let model = ref<AppSetting|null>({
     api:{
@@ -77,10 +78,12 @@ const props = defineProps({
     }
 
 })
+const $ApiStore = useApiStore();
 const saveSetting = async()=>{
     if(model.value == null) return;
     const s:AppSetting = model.value;
-    updateAllSetting(s)
+    await updateAllSetting(s)
+    $ApiStore.getApifromConfig();
     window.$message.success('保存成功');
     props.switchCallback(false);
 }

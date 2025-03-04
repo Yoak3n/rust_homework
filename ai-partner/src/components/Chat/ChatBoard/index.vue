@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { nextTick,  onMounted, ref,onUnmounted,PropType} from 'vue'
-import ChatMessage from '../ChatMessage/index.vue'
 import ChatMessageId from '../ChatMessageId/index.vue'
 import type { MessageItem } from '../../../types/index'
 import emitter from '../../../bus';

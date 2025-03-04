@@ -19,6 +19,8 @@ if (current.label == 'main'){
       })
 }
 
+import pinia from './store'
+app.use(pinia)
 app.mount("#app");
 app.onUnmount(()=>{
     if (unlisten != null || unlisten !=undefined) {

@@ -2,13 +2,14 @@
 import ChatBoard from '../components/Chat/ChatBoard/index.vue'
 import { NIcon } from 'naive-ui';
 import {Reload,Send,Pause} from '@vicons/ionicons5'
-import type {AppSetting, MessageItem} from '../types/index'
+import type { MessageItem} from '../types/index'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { querySetting } from '../api/db'
+import {storeToRefs} from 'pinia'
 import { throttle } from '../utils';
 import { invoke } from '@tauri-apps/api/core';
-import emitter from '../bus';
 import {unListenAll} from '../bus'
+import emitter from '../bus';
+import { useApiStore ,useAppStore} from '../store';
 
 const defaultMessages:Array<MessageItem> = [
   {
@@ -39,10 +40,12 @@ const submitUserMessage = () => {
 }
 
 
-let generating = ref(false)
-let appSetting = ref<AppSetting>()
-onMounted(async () => {
-  appSetting.value = await querySetting()
+const $AppStore = useAppStore()
+const $ApiStore = useApiStore()
+let {api,smooth} = storeToRefs($ApiStore)
+let {generating} = storeToRefs($AppStore)
+onMounted(()=>{
+  $ApiStore.getApifromConfig()
 })
 onBeforeUnmount(()=>{
   unListenAll()
@@ -51,7 +54,7 @@ const generateBotResponseStream = async () => {
   const ts = Date.now()
   const currentMessages:any = []
   messages.value.forEach((item) => currentMessages.push({role:item.role, content:item.content,reasoning_content:''}))
-  const newMessage = {role:'assistant', content:'', timestamp:ts}
+  const newMessage = {role:'assistant', content:'', timestamp:ts, reasoning_content:''}
   setMessage(newMessage)
   let m:MessageItem = await invoke('completions_stream',{id:ts,messages:currentMessages})
   m.timestamp = ts
@@ -77,7 +80,7 @@ const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)
 </script>
 <template>
   <div class="chat-view">
-    <ChatBoard :messages="messages" :smoothing="appSetting?.smooth" :model="appSetting?.api.model"/>
+    <ChatBoard :messages="messages" :smoothing="smooth" :model="api.model"/>
     <form class="chat-input" @submit="(e) =>{
       e.preventDefault()
       submitUserMessage()
@@ -89,7 +92,7 @@ const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)
       required 
       minlength="1" 
       @keydown="(e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter' && !e.shiftKey && !generating) {
           e.preventDefault()
           submitUserMessage()
         }
