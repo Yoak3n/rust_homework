@@ -91,7 +91,12 @@ export function throttle<T extends (...args: any[]) => void>(
 
     // 如果距离上次执行的时间超过 wait，立即执行
     if (timeSinceLastExec >= wait) {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
       lastExecTime = now;
+      
       func(...args);
     } else if (!timeoutId) {
       // 否则，设置一个定时器，在剩余时间后执行
@@ -103,6 +108,3 @@ export function throttle<T extends (...args: any[]) => void>(
     }
   };
 }
-
-export const throttelEmitScrollToBottom = ()=>throttle(emitScrollToBottom, 300)
-export const emitScrollToBottom = () => emitter.emit('scrollToBottom')

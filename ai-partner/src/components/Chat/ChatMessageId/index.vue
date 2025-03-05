@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref, PropType, nextTick } from 'vue'
+import { onMounted, ref, PropType, nextTick, onBeforeUnmount } from 'vue'
 import { listen } from '@tauri-apps/api/event'
+import { NSpin } from 'naive-ui';
 
 import { MessageItem } from '../../../types';
+import {registerNewListen, getUnlistenFnAndOff} from '../../../bus';
 import emitter from '../../../bus';
 import { useAppStore } from '../../../store';
-
+import {throttle} from '../../../utils'
 import MarkdownRender from '../../Markdown/index.vue'
 
 let messageUpdate = ref<MessageItem>(
@@ -58,7 +60,7 @@ onMounted(async () => {
                 isThinking.value = false
             }
             nextTick(() => {
-                emitter.emit('scrollToBottom')
+                throttleEmitScrollToBottom()
             })
         })
         const unlistenFnError = await listen('stream-error', (event) => {
@@ -71,13 +73,17 @@ onMounted(async () => {
             unlistenFnData()
             $AppStore.setGenerating(false)
         })
+        registerNewListen(messageUpdate.value.timestamp!,unlistenFnError)
+
     } else {
         messageUpdate.value!.content = props.message.content
         $AppStore.setGenerating(false)
     }
 })
-
-
+const throttleEmitScrollToBottom = throttle(() => {emitter.emit('scrollToBottom')},500)
+onBeforeUnmount(() => {
+    getUnlistenFnAndOff(messageUpdate.value.timestamp!)
+})
 </script>
 
 
@@ -85,8 +91,12 @@ onMounted(async () => {
     <div
         :class="`message ${message?.role == 'assistant' ? 'assistant' : message?.role == 'user' ? 'user' : message?.role == 'system' ? 'system' : ''}`">
         <div class="message-item">
-            <img class="bot-avatar" v-if="message?.role == 'assistant' || message?.role == 'system'"
-                src="../../../assets/bot.svg"></img>
+            <n-spin v-if="message?.role == 'assistant' || message?.role == 'system'" :show="isThinking" stroke="#593bab" size="large">
+                <img class="bot-avatar" 
+                src="../../../assets/bot.svg">
+            </n-spin>
+
+            </img>
             <div class="output">
                 <div class="thinking">
                     <div class="reasoning-text" v-if="messageUpdate.reasoning_content != ''&& messageUpdate.reasoning_content != null &&messageUpdate.reasoning_content != undefined">

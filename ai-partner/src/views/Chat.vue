@@ -5,7 +5,7 @@ import {Reload,Send,Pause} from '@vicons/ionicons5'
 import type { MessageItem} from '../types'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import {storeToRefs} from 'pinia'
-import { throttelEmitScrollToBottom } from '../utils';
+import { throttle } from '../utils';
 import { invoke } from '@tauri-apps/api/core';
 import {unListenAll} from '../bus'
 import emitter from '../bus';
@@ -80,11 +80,11 @@ const updateHistoryStream = (m: MessageItem) => {
   }else{
     messages.value.push(m)
   }
-  throttelEmitScrollToBottom()
+  throttleEmitScrollToBottom()
 }
 
 const resetHistory = async() => messages.value.splice(0, messages.value.length, defaultMessages[0])
-
+const throttleEmitScrollToBottom  = throttle(() => emitter.emit('scrollToBottom'), 1000)
 </script>
 <template>
   <div class="chat-view">
@@ -117,7 +117,7 @@ const resetHistory = async() => messages.value.splice(0, messages.value.length, 
       </button>
       <button type="button" class="pause-btn" v-else @click="(e)=>{
         e.preventDefault()
-        invoke('pause_stream',{id:ts})
+        invoke('pause_stream',{id:ts}).then(()=>$AppStore.setGenerating(false))
       }">
         <n-icon size="24">
           <Pause/>
