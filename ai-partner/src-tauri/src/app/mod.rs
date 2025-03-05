@@ -27,9 +27,11 @@ pub fn run() {
             invoke::create_dialog,
             invoke::get_app_install_path,
             invoke::completions_stream,
+            invoke::pause_stream,
             invoke::set_config,
             invoke::get_config
-            ])
+            ]
+        )
         .setup(|app| {
 
             #[cfg(desktop)]

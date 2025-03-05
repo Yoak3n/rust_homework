@@ -2,10 +2,10 @@
 import ChatBoard from '../components/Chat/ChatBoard/index.vue'
 import { NIcon } from 'naive-ui';
 import {Reload,Send,Pause} from '@vicons/ionicons5'
-import type { MessageItem} from '../types/index'
+import type { MessageItem} from '../types'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import {storeToRefs} from 'pinia'
-import { throttle } from '../utils';
+import { throttelEmitScrollToBottom } from '../utils';
 import { invoke } from '@tauri-apps/api/core';
 import {unListenAll} from '../bus'
 import emitter from '../bus';
@@ -33,7 +33,8 @@ const inputHeigthString = computed(() => `${inputHeigth}px`)
 
 const submitUserMessage = () => {
   if(input.value.trim() == '') return
-  const m:MessageItem = {role:'user', content:input.value, timestamp:0}
+  const timestamp = Date.now()
+  const m:MessageItem = {role:'user', content:input.value, timestamp:timestamp - 1}
   setMessage(m)
   input.value = ''
   generateBotResponseStream()
@@ -44,38 +45,45 @@ const $AppStore = useAppStore()
 const $ApiStore = useApiStore()
 let {api,smooth} = storeToRefs($ApiStore)
 let {generating} = storeToRefs($AppStore)
-onMounted(()=>{
+let ts = Date.now()
+onMounted(async()=>{
   $ApiStore.getApifromConfig()
 })
 onBeforeUnmount(()=>{
   unListenAll()
 })
 const generateBotResponseStream = async () => {
-  const ts = Date.now()
+  ts = Date.now()
   const currentMessages:any = []
   messages.value.forEach((item) => currentMessages.push({role:item.role, content:item.content,reasoning_content:''}))
   const newMessage = {role:'assistant', content:'', timestamp:ts, reasoning_content:''}
   setMessage(newMessage)
-  let m:MessageItem = await invoke('completions_stream',{id:ts,messages:currentMessages})
-  m.timestamp = ts
-  updateHistoryStream(m)
+  invoke('completions_stream',{id:ts,messages:currentMessages}).then((res) => {
+    let m = res as MessageItem
+    m.timestamp = ts
+    updateHistoryStream(m)
+  }).catch((e:string) => {
+    console.log("catch",e);
+  })
+  
+
 }
 const updateHistoryStream = (m: MessageItem) => {
   const index = messages.value.findIndex((item) =>item.timestamp == m.timestamp)
   if (index != -1){
-    messages.value[index] = {...messages.value[index], content:m.content, reasoning_content:m.reasoning_content}
+    if (m.role == 'system'){
+      messages.value.splice(index, 1)
+      messages.value.push(m)
+    }else{
+      messages.value[index] = {...messages.value[index], content:m.content, reasoning_content:m.reasoning_content, role:m.role}
+    }
   }else{
     messages.value.push(m)
   }
   throttelEmitScrollToBottom()
 }
-const emitScrollToBottom = () => {
-  emitter.emit('scrollToBottom')
-}
 
-const resetHistory = async() =>messages.value.splice(0, messages.value.length, defaultMessages[0])
-
-const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)
+const resetHistory = async() => messages.value.splice(0, messages.value.length, defaultMessages[0])
 
 </script>
 <template>
@@ -86,7 +94,6 @@ const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)
       submitUserMessage()
     }">
       <textarea 
-      type="textarea" 
       placeholder="Type a message..." 
       v-model="input"  
       required 
@@ -108,7 +115,10 @@ const throttelEmitScrollToBottom = throttle(emitScrollToBottom, 300)
           <Send/>
         </n-icon>
       </button>
-      <button type="button" class="pause-btn" v-else>
+      <button type="button" class="pause-btn" v-else @click="(e)=>{
+        e.preventDefault()
+        invoke('pause_stream',{id:ts})
+      }">
         <n-icon size="24">
           <Pause/>
         </n-icon>

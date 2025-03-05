@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, PropType } from 'vue'
+import { onMounted, ref, PropType, nextTick } from 'vue'
 import { listen } from '@tauri-apps/api/event'
 
 import { MessageItem } from '../../../types';
@@ -37,26 +37,39 @@ onMounted(async () => {
     messageUpdate.value = props.message
 
     if (props.message.role == 'assistant') {
-
         const unlistenFnData = await listen('stream-data', (event) => {
             const payload = event.payload as Payload
             if (payload.id != props.message.timestamp) return
             index++
-            if (payload.index != index) return
-            emitter.emit('scrollToBottom')
             if (payload.message_type == 'reasoning_content') {
+                if (payload.index != index) return
                 isThinking.value = true
                 $AppStore.setGenerating(true)
                 messageUpdate.value!.reasoning_content += payload.data
             } else if (payload.message_type == 'content') {
+                if (payload.index != index) return
                 isThinking.value = false
                 $AppStore.setGenerating(true)
                 messageUpdate.value!.content += payload.data
             } else {
                 unlistenFnData()
+                unlistenFnError()
                 $AppStore.setGenerating(false)
                 isThinking.value = false
             }
+            nextTick(() => {
+                emitter.emit('scrollToBottom')
+            })
+        })
+        const unlistenFnError = await listen('stream-error', (event) => {
+            console.log(event);
+            const payload = event.payload as Payload
+            if (payload.id != props.message.timestamp) return
+            messageUpdate.value.role = 'system'
+            messageUpdate.value.content = payload.data
+            unlistenFnError()
+            unlistenFnData()
+            $AppStore.setGenerating(false)
         })
     } else {
         messageUpdate.value!.content = props.message.content
@@ -98,6 +111,15 @@ onMounted(async () => {
 
     .message-item {
         max-width: 75%;
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        .bot-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #593bab;
+        }
         .output {
             .thinking {
                 .reasoning-text {
@@ -127,6 +149,26 @@ onMounted(async () => {
             }
         }
     }
+    &.system {
+        .message-item{
+            .message-content{
+                color: #f00;
+                background-color: #f1f1f1;
+                border-radius: 13px 13px 13px 3px;
+            }
+            .bot-avatar{
+                background-color: #f44;
+            }
+        }
+    }
+    &.user{
+        .message-item{
+            .message-content{
+                border-radius: 13px 13px 3px 13px;
+            }
+
+        }
+    }
 }
 
 .user {
@@ -134,19 +176,6 @@ onMounted(async () => {
 
     .message-item {
         flex-direction: row-reverse;
-    }
-}
-
-.message-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 11px;
-
-    .bot-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background-color: #593BAB;
     }
 }
 </style>

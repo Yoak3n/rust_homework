@@ -4,7 +4,10 @@ pub fn greet(name: &str) -> String {
 }
 
 use tauri::{
-    AppHandle, Error, Manager, PhysicalSize, State, WebviewUrl, WebviewWindowBuilder
+    AppHandle, Emitter,
+    Error, Manager, 
+    PhysicalSize, State, 
+    WebviewUrl, WebviewWindowBuilder
 };
 use super::{model::*, state::AppState};
 #[tauri::command]
@@ -61,25 +64,13 @@ pub fn get_app_install_path() -> Result<String, String> {
             .map(|s| s.to_string()))
 }
 
-use tauri::Emitter;
 use futures::StreamExt;
 use reqwest::{Client,header::{HeaderMap,HeaderValue,AUTHORIZATION}};
 use serde_json::json;
+
 #[tauri::command]
 pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,AppState>,id: usize,messages:Vec<MessageItem>) -> Result<MessageItem, String> {
     let api = state.config.try_lock().expect("get config of state error").api.clone();
-    // let messages:Vec<MessageItem> = [
-    //     MessageItem{
-    //         role: "system".to_string(),
-    //         content: "你是一个智能助手，请根据用户的问题，提供简洁、准确的回答".to_string(),
-    //         reasoning_content: "".to_string(),
-    //     },
-    //     MessageItem{
-    //         role: "user".to_string(),
-    //         content: "你好，你是谁？".to_string(),
-    //         reasoning_content: "".to_string(),
-    //     }
-    // ].to_vec();
     println!("api: {:#?}", api);
     let client = Client::new();
     let mut headers = HeaderMap::new();
@@ -102,13 +93,15 @@ pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,Ap
             Ok(res) => res,
             Err(e) => {
                 println!("请求失败: {}", e);
-                let _ = app_handle.emit("stream-error", e.to_string());
+                let payload = StreamError::new(e.to_string(), id);
+                let _ = app_handle.emit_to("main","stream-error",&payload);
                 return Err(e.to_string());
             }
         };
     if response.status() != 200 {
         println!("请求失败: {}", response.status());
-        let _ = app_handle.emit("stream-error", response.status().to_string());
+        let payload = StreamError::new(response.status().to_string(), id);
+        let _ = app_handle.emit_to("main","stream-error",&payload);
         return Err(response.status().to_string());
     }
     let mut full = MessageItem::default();
@@ -136,13 +129,16 @@ pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,Ap
             }
             Err(e) => {
                 println!("流错误: {}", e);
-                let _ = app_handle.emit_to("main","stream-error", e.to_string());
+                let payload = StreamError::new(e.to_string(), id);
+                let _ = app_handle.emit_to("main","stream-error", &payload);
             }
         }
     }
     Ok(full)
 }
+
 use std::io::{BufReader,BufRead};
+
 fn handle_stream_data(data: &[u8])->Option<Vec<MessageType>> {
     let mut ret:Vec<MessageType> = vec![];
     let reader = BufReader::new(data);
@@ -198,4 +194,15 @@ pub async fn set_config(state : State<'_,AppState>,new_config: Configuration) ->
 pub async fn get_config(state : State<'_,AppState>) -> Result<Configuration, String> {
     let config =  state.config.try_lock().expect("get config lock error");
     Ok(config.clone())
+}
+
+#[tauri::command]
+pub async fn pause_stream(app: tauri::AppHandle,id:usize) -> Result<(), String> {
+    println!("暂停流: {}", id);
+    let item = MessageType::DONE;
+    let payload = StreamEmitter::new(item, 0, id);
+    if let Err(e) = app.emit("stream-data", payload) {
+        eprintln!("事件发送失败: {}", e);
+    }
+    Ok(())
 }

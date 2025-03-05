@@ -53,7 +53,7 @@ let props = defineProps(
   <div class="chat-board" ref="chatBody">
     <h1>{{model}}</h1>
     <div class="chat-body">
-      <ChatMessageId v-for="message in props.messages" :message="message" ></ChatMessageId>
+      <ChatMessageId v-for="message in props.messages" :message="message" :key="message.timestamp"></ChatMessageId>
     </div>
   </div>
 </template>

@@ -4,6 +4,12 @@ export interface MessageItem {
     reasoning_content?:string;
     timestamp?: number;
 }
+
+export interface ErrorMessage {
+    id:number;
+    message: string;
+}
+
 export interface AppSetting  {
     smooth: boolean;
     api: API;

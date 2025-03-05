@@ -79,6 +79,7 @@ pub struct StreamEmitter{
     pub id: usize,
 }
 
+
 impl StreamEmitter{
     pub fn new(message_type: MessageType, index: usize, id: usize) -> Self {
         let (message_type,data) = match message_type {
@@ -90,6 +91,20 @@ impl StreamEmitter{
             message_type,
             data,
             index,
+            id
+        }
+    }
+}
+#[derive(Serialize)]
+pub struct StreamError{
+    pub data: String,
+    pub id: usize,
+}
+
+impl StreamError {
+    pub fn new(data: String, id: usize) -> Self {
+        Self{
+            data,
             id
         }
     }
