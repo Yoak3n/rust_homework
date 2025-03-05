@@ -132,13 +132,14 @@ const throttleEmitScrollToBottom  = throttle(() => emitter.emit('scrollToBottom'
   background-color: #eee;
   box-sizing: border-box;
   textarea{
-    height: 50px;
     width: 90%;
     border-radius: 5px;
     background-color: #eee;
-    padding: 0 17px;
+    padding-left: 17px;
     padding-top: 15px;
+    height: 50px;
     font-size: 1rem;
+    box-sizing: border-box;
     overflow: auto; /* 允许滚动 */
     resize: none; /* 禁用调整大小手柄 */
     scrollbar-width: none; /* 隐藏滚动条（Firefox） */

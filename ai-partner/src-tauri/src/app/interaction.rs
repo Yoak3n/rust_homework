@@ -1,7 +1,5 @@
 use tauri::{
-    menu::{Menu, MenuItem},
-    tray::TrayIconBuilder,
-    Manager,
+    menu::{Menu, MenuItem}, tray::TrayIconBuilder, Manager
 };
 use tauri::{App, Emitter, Error};
 use tauri_plugin_global_shortcut::{Builder, Code, Modifiers, ShortcutState};
@@ -27,6 +25,7 @@ pub fn register_shortcuts(app: &App) -> Result<(), Error> {
         }
     })
 }
+
 
 pub fn create_systray(app: &mut App) -> Result<(), Error> {
     let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;

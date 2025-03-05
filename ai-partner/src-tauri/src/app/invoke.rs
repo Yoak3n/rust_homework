@@ -139,7 +139,6 @@ pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,Ap
 }
 
 use std::io::{BufReader,BufRead};
-
 fn handle_stream_data(data: &[u8])->Option<Vec<MessageType>> {
     let mut ret:Vec<MessageType> = vec![];
     let reader = BufReader::new(data);
@@ -170,7 +169,6 @@ fn handle_stream_data(data: &[u8])->Option<Vec<MessageType>> {
 }
 
 
-// use crate::store::config::{Configuration,update_config};
 use crate::store::setting::Configuration;
 #[tauri::command]
 pub async fn set_config(state : State<'_,AppState>,new_config: Configuration) -> Result<(), String> {
