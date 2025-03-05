@@ -29,6 +29,7 @@ pub async fn create_dialog(app_handle: AppHandle) -> Result<(), Error> {
                 WebviewUrl::App("/dialog".into()))
                 .transparent(true)
                 .center()
+                .title("")
                 .resizable(false)
                 .always_on_top(true)
                 .decorations(false)

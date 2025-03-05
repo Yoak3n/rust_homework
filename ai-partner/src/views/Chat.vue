@@ -23,11 +23,8 @@ let messages = ref<MessageItem[]>(defaultMessages)
 let input = ref<string>('')
 
 
-const setMessage = (mi:MessageItem) => {
-  messages.value.push(mi)
-  emitter.emit('scrollToBottom')
-}
-
+const setMessage = (mi:MessageItem) => {messages.value.push(mi);throttleEmitScrollToBottom()}
+// 顶栏高度
 const inputHeigth = 50;
 const inputHeigthString = computed(() => `${inputHeigth}px`)
 
@@ -39,7 +36,6 @@ const submitUserMessage = () => {
   input.value = ''
   generateBotResponseStream()
 }
-
 
 const $AppStore = useAppStore()
 const $ApiStore = useApiStore()
@@ -62,24 +58,13 @@ const generateBotResponseStream = async () => {
     let m = res as MessageItem
     m.timestamp = ts
     updateHistoryStream(m)
-  }).catch((e:string) => {
-    console.log("catch",e);
-  })
-  
-
+  }).catch((e:string) => console.log("catch",e))
 }
+
 const updateHistoryStream = (m: MessageItem) => {
   const index = messages.value.findIndex((item) =>item.timestamp == m.timestamp)
-  if (index != -1){
-    if (m.role == 'system'){
-      messages.value.splice(index, 1)
-      messages.value.push(m)
-    }else{
-      messages.value[index] = {...messages.value[index], content:m.content, reasoning_content:m.reasoning_content, role:m.role}
-    }
-  }else{
-    messages.value.push(m)
-  }
+  if (index != -1){messages.value[index] = {...messages.value[index], content:m.content, reasoning_content:m.reasoning_content, role:m.role}
+  }else{messages.value.push(m)}
   throttleEmitScrollToBottom()
 }
 
@@ -152,7 +137,7 @@ const throttleEmitScrollToBottom  = throttle(() => emitter.emit('scrollToBottom'
     border-radius: 5px;
     background-color: #eee;
     padding: 0 17px;
-    line-height: 50px;
+    padding-top: 15px;
     font-size: 1rem;
     overflow: auto; /* 允许滚动 */
     resize: none; /* 禁用调整大小手柄 */

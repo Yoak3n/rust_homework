@@ -40,14 +40,6 @@ let props = defineProps(
   }
 )
 
-// watch(
-//   ()=>props.messages,
-//   (newValue) => {
-//     console.log("watch in ChatBoard",newValue);
-//   },{
-//     deep:true
-//   }
-// )
 </script>
 <template>
   <div class="chat-board" ref="chatBody">

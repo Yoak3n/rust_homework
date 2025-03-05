@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
+import { NIcon } from 'naive-ui'
+import {CaretForward} from '@vicons/ionicons5'
 let message = ref('')
 
 const submittMessage = () => {
@@ -17,8 +19,12 @@ const submittMessage = () => {
         <textarea class="dialog-textarea" rows="4" cols="50" v-model="message" @keydown="(e)=>{
         if(e.key === 'Enter'){e.preventDefault();submittMessage()}
         }" >
-
         </textarea>
+        <button class="btn">
+          <n-icon>
+            <CaretForward />
+          </n-icon>
+        </button>
     </div>
   </div>
 
@@ -50,16 +56,19 @@ body{
   backdrop-filter: blur(10px);
   display: flex;
   justify-content: space-between;
-  flex-direction: column;
   align-items: center;
+  border-radius: 10px;
+  background-color: rgba(77, 107, 254, .5);
+  .btn{
+    height: 50px;
+  }
 }
 
 .dialog-textarea {
   width: 100%;
   padding: 10px;
   resize: none;
-  border-radius: 10px;
-  background-color: rgba(77, 107, 254, .5);
+  background-color: transparent;
   color: #fff;
 }
 

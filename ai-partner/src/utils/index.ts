@@ -1,5 +1,4 @@
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import emitter from '../bus'
 export * from './router'
 
 export const switchDialogWindow= async() => {
