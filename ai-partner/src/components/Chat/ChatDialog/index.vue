@@ -1,19 +1,23 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { NIcon } from 'naive-ui'
 import {CaretForward} from '@vicons/ionicons5'
-let message = ref('')
 
+let message = ref('')
 const submittMessage = () => {
   message.value = ''
 }
+onMounted(() => {
+
+})
+
 </script>
 
 
 <template>
   <div class="dialog">
     <div class="dialog-bg"></div>
-    <div class="dialog-header" data-tauri-drag-region>
+    <div class="dialog-header"  data-tauri-drag-region>
     </div>
     <div class="dialog-content">
         <textarea class="dialog-textarea" rows="4" cols="50" v-model="message" @keydown="(e)=>{
@@ -40,15 +44,24 @@ body{
   position: fixed;
   height: 100%;
   width: 100%;
+  user-select: none;
   filter: blur(10px);
 }
 
 .dialog-header {
-  padding: 10px;
+  width: 50%;
+  margin: 0 auto;
+  height: 10px;
   backdrop-filter: blur(10px);
+  border-radius: 10px;
   color: #ccc;
-  background-color: rgba(200, 200, 200,.5);
-
+  background-color: transparent;
+  cursor: pointer;
+  transition: all .1s ease-out;
+  &:hover,
+  &.dragging{
+    background-color: rgba(200, 200, 200,.7);
+  }
 }
 
 .dialog-content {

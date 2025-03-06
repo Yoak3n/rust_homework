@@ -17,9 +17,11 @@ pub async fn create_dialog(app_handle: AppHandle) -> Result<(), Error> {
             let v = w.is_visible()?;
             if v {
                 println!("hide");
+                w.set_always_on_top(false)?;
                 w.hide()?;
             }else{
                 println!("show");
+                w.set_always_on_top(true)?;
                 w.show()?;
             }
         },
@@ -31,6 +33,7 @@ pub async fn create_dialog(app_handle: AppHandle) -> Result<(), Error> {
                 .center()
                 .title("")
                 .resizable(false)
+                .shadow(false)
                 .always_on_top(true)
                 .decorations(false)
                 .build()?;
@@ -204,4 +207,9 @@ pub async fn pause_stream(app: tauri::AppHandle,id:usize) -> Result<(), String> 
         eprintln!("事件发送失败: {}", e);
     }
     Ok(())
+}
+
+#[tauri::command]
+pub async fn on_drag_end_invoke(window: tauri::Window) {
+    println!("窗口拖动结束！当前位置: {:?}", window.outer_position().unwrap());
 }
