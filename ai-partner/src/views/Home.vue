@@ -93,23 +93,5 @@ const menuOptions: Array<MenuOption> = [
     .n-layout {
         height: 100%;
     }
-    .n-menu.n-menu--collapsed .n-menu-item-content.n-menu-item-content--selected::before {
-        background-color: rgba(74, 144, 226, 0.2) !important;
-    }
-
-    .n-menu .n-menu-item-content.n-menu-item-content--selected::before {
-        background-color: rgba(74, 144, 226, 0.2) !important;
-    }
-
-    .n-menu .n-menu-item-content.n-menu-item-content--selected .n-menu-item-content-header a {
-        color: #4a90e2 !important;
-    }
-    .n-button:not(.n-button--disabled):active,
-    .n-button:not(.n-button--disabled):focus,
-    .n-button:not(.n-button--disabled):hover {
-        background-color: var(--n-color-pressed);
-        color: #4a90e2;
-      }
-
 }
 </style>

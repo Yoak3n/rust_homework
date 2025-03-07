@@ -3,7 +3,7 @@ import { onMounted, ref, PropType, nextTick, onBeforeUnmount } from 'vue'
 import { listen } from '@tauri-apps/api/event'
 import { NSpin } from 'naive-ui';
 
-import { MessageItem } from '../../../types';
+import { MessageItem,Payload } from '../../../types';
 import {registerNewListen, getUnlistenFnAndOff} from '../../../bus';
 import emitter from '../../../bus';
 import { useAppStore } from '../../../store';
@@ -28,12 +28,7 @@ const props = defineProps({
 })
 const $AppStore = useAppStore()
 
-interface Payload {
-    id: number,
-    message_type: string,
-    index: number,
-    data: string
-}
+
 
 onMounted(async () => {
     messageUpdate.value = props.message

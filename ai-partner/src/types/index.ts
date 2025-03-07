@@ -26,3 +26,4 @@ export interface Segment {
     hash: number;
     html?:string
 }
+export * from './listener'

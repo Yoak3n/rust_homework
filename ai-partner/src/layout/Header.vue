@@ -8,18 +8,21 @@ const props = defineProps({
 })
 const {heigth} = toRefs(props)
 const heightString  = computed(() => `${heigth.value}px`)
-import {window} from '@tauri-apps/api'
-import { exit } from '@tauri-apps/plugin-process';
+import { getCurrentWindow } from '@tauri-apps/api/window'
+// import { exit } from '@tauri-apps/plugin-process';
 const minimize = () => {
-    let w = window.Window.getCurrent()
+    let w = getCurrentWindow()
     w.minimize()
 }
 const toggleFullscreen = async() => {
-    let w = window.Window.getCurrent()
+    let w = getCurrentWindow()
     const isFullscreen = await w.isFullscreen()
     w.setFullscreen(!isFullscreen)
 }
-const close = () => exit(0)
+const close = () => {
+    let w = getCurrentWindow()
+    w.hide()
+}
 </script>
 <template>
     <div class="header" data-tauri-drag-region>

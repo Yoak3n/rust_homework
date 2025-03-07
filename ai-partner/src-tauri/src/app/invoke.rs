@@ -75,7 +75,6 @@ use serde_json::json;
 #[tauri::command]
 pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,AppState>,id: usize,messages:Vec<MessageItem>) -> Result<MessageItem, String> {
     let api = state.config.try_lock().expect("get config of state error").api.clone();
-    println!("api: {:#?}", api);
     let client = Client::new();
     let mut headers = HeaderMap::new();
     headers.insert(
