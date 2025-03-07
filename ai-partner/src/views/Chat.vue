@@ -113,7 +113,7 @@ const throttleEmitScrollToBottom  = throttle(() => emitter.emit('scrollToBottom'
 
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .chat-view{
   position: relative;
   width: 100%;
