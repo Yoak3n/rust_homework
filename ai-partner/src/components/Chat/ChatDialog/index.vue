@@ -12,6 +12,46 @@ import emitter from '../../../bus'
 import { registerNewListen,getUnlistenFnAndOff } from '../../../bus'
 import MarkdownRender from '../../../components/Markdown/index.vue'
 
+const messageContainer = ref<HTMLElement|null>(null);
+const userScrolling = ref(false);
+const scrollTimeout = ref<number | null>(null);
+const handleScroll = () => {
+  if (!messageContainer.value) return;
+  
+  // 检测是否滚动到底部
+  const isAtBottom = messageContainer.value.scrollHeight - messageContainer.value.scrollTop <= messageContainer.value.clientHeight + 50;
+  
+  // 如果不在底部，设置用户正在滚动状态
+  if (!isAtBottom) {
+    userScrolling.value = true;
+    
+    // 清除之前的定时器
+    if (scrollTimeout.value !== null) {
+      clearTimeout(scrollTimeout.value);
+    }
+    
+    // 设置新的定时器，3秒后恢复自动滚动
+    scrollTimeout.value = window.setTimeout(() => {
+      userScrolling.value = false;
+      scrollTimeout.value = null;
+    }, 3000);
+  } else {
+    // 如果已经在底部，重置用户滚动状态
+    userScrolling.value = false;
+    if (scrollTimeout.value !== null) {
+      clearTimeout(scrollTimeout.value);
+      scrollTimeout.value = null;
+    }
+  }
+};
+const scrollToBottom = () => {
+  if (messageContainer.value) {
+    if (!userScrolling.value){
+      messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
+    }
+  }
+};
+const throttleEmitScrollToBottom = throttle(() => scrollToBottom(), 500)
 let message = ref('')
 let dragging = ref(false)
 const submittMessage = () => {
@@ -25,7 +65,7 @@ const generating = ref(false)
 const makeMessage = async (question: string) => {
   timeId.value = Date.now()
   const messageItems: Array<MessageItem> = [{ role: 'user', content: question, reasoning_content: '', timestamp: timeId.value - 5 },]
-  message.value = ''
+  setTimeout(()=>message.value = '',1000)
   const unlistenFnData = await listen('stream-data', (event) => {
     const payload = event.payload as Payload
     if (payload.id != timeId.value) return
@@ -54,6 +94,9 @@ onMounted(async () => {
   unlisten = await getCurrentWindow().listen('tauri://move', () => {
     switchState()
   })
+  if (messageContainer.value) {
+    messageContainer.value.addEventListener('scroll', handleScroll, { passive: true });
+  }
 })
 onUnmounted(() => {
   unlisten()
@@ -68,7 +111,7 @@ const recircle = () => {
     emitter.emit('message-cleared')
   }, 300)
 }
-const throttleEmitScrollToBottom = throttle(() => { emitter.emit('scrollToBottom') }, 500)
+
 </script>
 
 
@@ -91,7 +134,9 @@ const throttleEmitScrollToBottom = throttle(() => { emitter.emit('scrollToBottom
         </n-icon>
       </button>
     </div>
-    <div class="message-container" v-if="messageUpdate.reasoning_content !== '' || messageUpdate.content !== '' ">
+    <div class="message-container" 
+      ref="messageContainer"
+      v-show="messageUpdate.reasoning_content !== '' || messageUpdate.content !== '' ">
       <div class="output">
         <div class="message-item"  v-if="messageUpdate.reasoning_content !== ''">
           <div class="reasoning">{{ messageUpdate.reasoning_content }}</div>

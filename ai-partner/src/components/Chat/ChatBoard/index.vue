@@ -4,13 +4,60 @@ import ChatMessageId from '../ChatMessageId/index.vue'
 import type { MessageItem } from '../../../types/index'
 import emitter from '../../../bus';
 let chatBody = ref<HTMLInputElement | null>(null)
+// 添加用户滚动状态变量
+const userScrolling = ref(false);
+const scrollTimeout = ref<number | null>(null);
 
+// 处理用户滚动事件
+const handleScroll = () => {
+  if (!chatBody.value) return;
+  const isAtBottom = chatBody.value.scrollHeight - chatBody.value.scrollTop <= chatBody.value.clientHeight + 50;
+  
+  // 如果不在底部，设置用户正在滚动状态
+  if (!isAtBottom) {
+    userScrolling.value = true;
+    // 清除之前的定时器
+    if (scrollTimeout.value !== null) {
+      clearTimeout(scrollTimeout.value);
+    }
+    
+    // 设置新的定时器，5秒后恢复自动滚动
+    scrollTimeout.value = window.setTimeout(() => {
+      userScrolling.value = false;
+      scrollTimeout.value = null;
+    }, 5000);
+  } else {
+    // 如果已经在底部，则认为不需要滚动
+    userScrolling.value = false;
+    if (scrollTimeout.value !== null) {
+      clearTimeout(scrollTimeout.value);
+      scrollTimeout.value = null;
+    }
+  }
+};
 onMounted(() => {
+  if (chatBody.value) {
+    chatBody.value.addEventListener('scroll', handleScroll, { passive: true });
+  }
+  nextTick(() => {
+    // 后面再加个滚动到底部的按钮
+    if (chatBody.value) {
+      chatBody.value.scrollTo({ top: chatBody.value.scrollHeight });
+    }
+  });
   emitter.on('scrollToBottom', ()=>{
-    scrollToBottom()
+    if (!userScrolling.value) {
+      scrollToBottom();
+    }
 })
 });
 onUnmounted(() => {
+  if (chatBody.value) {
+    chatBody.value.removeEventListener('scroll', handleScroll);
+  }
+  if (scrollTimeout.value !== null) {
+    clearTimeout(scrollTimeout.value);
+  }
   emitter.off('scrollToBottom')
 })
 

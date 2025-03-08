@@ -7,9 +7,7 @@ import {storeToRefs} from 'pinia'
 import { NIcon } from 'naive-ui';
 import {Reload,ReturnUpForwardOutline,Pause} from '@vicons/ionicons5'
 
-
 import ChatBoard from '../components/Chat/ChatBoard/index.vue'
-
 
 import type { MessageItem} from '../types'
 import { throttle } from '../utils';
@@ -25,6 +23,7 @@ const conversationTitle = ref<string>('')
 const defaultMessages:Array<MessageItem> = []
 let messages = ref<MessageItem[]>(defaultMessages)
 let input = ref<string>('')
+
 const ts = ref(Date.now())
 // 加载历史对话
 const loadConversation = async (id: number) => {
@@ -72,19 +71,16 @@ watch(
 
 const setMessage = (mi:MessageItem) => {
   messages.value.push(mi);
-  console.log("add ",messages.value.length);
   nextTick(() => {
     throttleEmitScrollToBottom()
   })
 }
-
 
 const submitUserMessage = async() => {
   if(input.value.trim() == '') return
   ts.value = Date.now()
   const m:MessageItem = {role:'user', content:input.value, timestamp:ts.value - 5,reasoning_content: ''}
   setMessage(m)
-  console.log("add user ",messages.value);
   const newMessage = {role:'assistant-generating', content:'', timestamp:ts.value, reasoning_content:''}
   setMessage(newMessage)
   // 如果是新对话，先创建对话
@@ -119,9 +115,7 @@ const $ApiStore = useApiStore()
 let {api,smooth} = storeToRefs($ApiStore)
 let {generating} = storeToRefs($AppStore)
 const isExpanded = ref(false)
-const toggleExpand = () => {
-  isExpanded.value = !isExpanded.value
-}
+const toggleExpand = () => isExpanded.value = !isExpanded.value
 const generateBotResponseStream = async () => {
   const currentMessages:any = []
   messages.value.forEach((item) => {
@@ -129,10 +123,6 @@ const generateBotResponseStream = async () => {
       currentMessages.push({role:item.role, content:item.content,reasoning_content:'',timestamp:item.timestamp})
     }
   })
-  // const newMessage = {role:'assistant-generating', content:'', timestamp:ts.value, reasoning_content:''}
-  // setMessage(newMessage)
-  console.log(currentMessages);
-  
   try {
     const res = await invoke('completions_stream', {
       id: ts.value,
@@ -152,7 +142,6 @@ const generateBotResponseStream = async () => {
     window.$message.error(`生成回复失败:${e}`, {duration: 5000})
   }
 }
-
 const updateHistoryStream = (m: MessageItem) => {
   const index = messages.value.findIndex((item) =>item.timestamp == m.timestamp)
   if (index != -1){messages.value[index] = {...messages.value[index], content:m.content, reasoning_content:m.reasoning_content, role:m.role}
@@ -171,7 +160,7 @@ const resetHistory = async() => {
   input.value = ''
   $AppStore.setGenerating(false)
 }
-const throttleEmitScrollToBottom  = throttle(() => emitter.emit('scrollToBottom'), 1000)
+const throttleEmitScrollToBottom  = throttle(() =>emitter.emit('scrollToBottom'), 1000)
 </script>
 <template>
   <div class="chat-view">

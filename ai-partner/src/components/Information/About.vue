@@ -1,9 +1,6 @@
 <template>
   <div class="app-about" :class="{ 'dark-mode': darkMode }">
-    <!-- 头部品牌信息 -->
-
     <n-tabs type="segment">
-
       <n-tab-pane name="chap1" tab="使用说明">
         <div >
           安装后开始对话前需要先
@@ -13,13 +10,12 @@
         </div>
         <n-divider></n-divider>
         <div>
-          smooth选项为是否开启平滑输出，开启后每个字符会逐个输出，仅优化视觉效果，实际性能较低
-        </div>
-        <n-divider></n-divider>
-        <div>
-          <b>快捷键:</b>
+          <b>使用细节:</b><br/>
+          打开快速（临时）对话框: <b>alt + 1</b> / <b>alt + n</b>
           <br/>
-          打开快速对话框: <b>alt + 1</b> / <b>alt + n</b>
+          回车键发送消息，循环按钮为停止并清空当前对话
+          <br/>
+          对话框顶可拖动
           <br/>
 
         </div>
@@ -93,19 +89,6 @@
         </div>
       </n-tab-pane>
     </n-tabs>
-
-
-
-
-
-
-
-    <!-- 许可证弹窗 -->
-    <!-- <LicenseDialog 
-      v-if="showLicenseDialog"
-      :library="selectedLibrary"
-      @close="showLicenseDialog = false"
-    /> -->
   </div>
 </template>
 

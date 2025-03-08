@@ -49,16 +49,18 @@
                 >
                 </n-select>
                 <n-button 
-                secondary 
-                type="info" 
-                @click="$ApiStore.clearModelHistory()"
-                :disabled="!modelHistory.length"
-            >清除历史</n-button>
+                    secondary 
+                    type="info" 
+                    @click="$ApiStore.clearModelHistory()"
+                    :disabled="!modelHistory.length"
+                >
+                    清除历史
+                </n-button>
             </n-form-item>
             <n-divider></n-divider>
-            <n-form-item label="smooth (invalid)" >
+            <!-- <n-form-item label="smooth (invalid)" >
                 <n-switch v-model:value="model!.smooth" disabled/>
-            </n-form-item>                
+            </n-form-item>                 -->
             <n-form-item>
                 <n-button type="primary" class="confirm-btn" style="margin: 0 auto;width:20%" @click="saveSetting">确定</n-button>
             </n-form-item>
@@ -68,7 +70,7 @@
 
 <script lang="ts" setup>
 import { ref,onMounted, computed } from 'vue';
-import { NForm, NFormItem, NInput, NButton, NIcon,NSwitch,NDivider,NSelect } from 'naive-ui';
+import { NForm, NFormItem, NInput, NButton, NIcon,NDivider,NSelect } from 'naive-ui';
 import type { AppSetting } from '../../types';
 import { storeToRefs } from 'pinia'
 import { useApiStore } from '../../store';

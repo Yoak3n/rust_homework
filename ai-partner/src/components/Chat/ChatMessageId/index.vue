@@ -64,7 +64,6 @@ onMounted(async () => {
                 isThinking.value = false
             }
             nextTick(() => {
-                console.log(messageUpdate.value);
                 throttleEmitScrollToBottom()
             })
         })

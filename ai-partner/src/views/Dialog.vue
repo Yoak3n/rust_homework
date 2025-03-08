@@ -64,7 +64,7 @@ onBeforeUnmount(async() => {
 </template>
 <style>
 html {
-  overflow: hidden;
+  overflow-y: hidden;
 }
 body{
     height: 100%;

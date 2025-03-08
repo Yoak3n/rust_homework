@@ -34,7 +34,7 @@ pub fn create_systray(app: &mut App) -> Result<(), Error> {
     let hide_i_clone = hide_i.clone();
     let _ = TrayIconBuilder::new()
         .menu(&menu)
-        .show_menu_on_left_click(true)
+        .show_menu_on_left_click(false)
         .icon(app.default_window_icon().unwrap().clone())
         .on_tray_icon_event(move |tray_handle, event| {
             let app_handle = tray_handle.app_handle();
