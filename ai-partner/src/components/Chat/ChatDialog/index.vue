@@ -9,6 +9,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { debounce, throttle } from '../../../utils'
 import { MessageItem, Payload } from '../../../types'
 import emitter from '../../../bus'
+import { registerNewListen,getUnlistenFnAndOff } from '../../../bus'
 import MarkdownRender from '../../../components/Markdown/index.vue'
 
 let message = ref('')
@@ -17,17 +18,17 @@ const submittMessage = () => {
   makeMessage(message.value)
   recircle()
 }
-let timeId: number;
+let timeId = ref(0);
 const defaultMessage = [{ role: 'assistant', content: '', reasoning_content: '' }]
 let messageUpdate = ref<MessageItem>(defaultMessage[0])
 const generating = ref(false)
 const makeMessage = async (question: string) => {
-  timeId = Date.now()
-  const messageItems: Array<MessageItem> = [{ role: 'user', content: question, reasoning_content: '', timestamp: timeId - 5 },]
+  timeId.value = Date.now()
+  const messageItems: Array<MessageItem> = [{ role: 'user', content: question, reasoning_content: '', timestamp: timeId.value - 5 },]
   message.value = ''
   const unlistenFnData = await listen('stream-data', (event) => {
     const payload = event.payload as Payload
-    if (payload.id != timeId) return
+    if (payload.id != timeId.value) return
     generating.value = true
     if (payload.message_type == 'reasoning_content') {
       messageUpdate.value!.reasoning_content += payload.data
@@ -41,7 +42,8 @@ const makeMessage = async (question: string) => {
       throttleEmitScrollToBottom()
     })
   })
-  invoke('completions_stream', { messages: messageItems, id: timeId }).catch((e) => {
+  registerNewListen(timeId.value, unlistenFnData)
+  invoke('completions_stream', { messages: messageItems, id: timeId.value }).catch((e) => {
     window.$message.error(e.toString(), { duration: 3000 })
   })
 }
@@ -58,11 +60,13 @@ onUnmounted(() => {
 })
 const recircle = () => {
   emitter.emit('message-cleared')
+  getUnlistenFnAndOff(timeId.value)
+  generating.value = false
+  timeId.value = 0
   setTimeout(() => {
-    messageUpdate.value = { ...defaultMessage[0], content: '', reasoning_content: '',timestamp:timeId }
-  }, 100)
-
-
+    messageUpdate.value = { ...defaultMessage[0], content: '', reasoning_content: '',timestamp:timeId.value }
+    emitter.emit('message-cleared')
+  }, 300)
 }
 const throttleEmitScrollToBottom = throttle(() => { emitter.emit('scrollToBottom') }, 500)
 </script>
@@ -115,7 +119,8 @@ body {
   height: 100%;
   margin: 15px 0;
   padding: 0 15px;
-  max-height: 100vh;
+  max-height: calc(800px - 100px); 
+  scroll-behavior: smooth; 
 }
 
 .message-container::-webkit-scrollbar {

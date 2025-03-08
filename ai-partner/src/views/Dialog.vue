@@ -43,8 +43,7 @@ const resizeObserver = new ResizeObserver(async (entries) => {
     const contentHeight = dialogContent.getBoundingClientRect().height
     const messageHeight = messageContainer.scrollHeight
     const headerHeight = 28  // 头部高度
-    const totalHeight = messageHeight + contentHeight + headerHeight + 5
-
+    const totalHeight = messageHeight + contentHeight + headerHeight + 10
     debouncedResizeWindow(totalHeight) 
     
   }
