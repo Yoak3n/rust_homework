@@ -1,64 +1,156 @@
 <script lang="ts" setup>
-import ChatBoard from '../components/Chat/ChatBoard/index.vue'
-import { NIcon } from 'naive-ui';
-import {Reload,Send,Pause} from '@vicons/ionicons5'
-import type { MessageItem} from '../types'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import {storeToRefs} from 'pinia'
-import { throttle } from '../utils';
+import {nextTick, onBeforeUnmount, onMounted, ref,watch } from 'vue';
+import { useRoute,useRouter} from 'vue-router';
 import { invoke } from '@tauri-apps/api/core';
+import {storeToRefs} from 'pinia'
+
+import { NIcon } from 'naive-ui';
+import {Reload,ReturnUpForwardOutline,Pause} from '@vicons/ionicons5'
+
+
+import ChatBoard from '../components/Chat/ChatBoard/index.vue'
+
+
+import type { MessageItem} from '../types'
+import { throttle } from '../utils';
 import {unListenAll} from '../bus'
 import emitter from '../bus';
 import { useApiStore ,useAppStore} from '../store';
 
-const defaultMessages:Array<MessageItem> = [
-  {
-    role:'assistant', 
-    content:'你好，我是你的助手，有什么可以帮助你的吗？', 
-    timestamp:0
-  }
-]
-
+// 添加对话相关的状态
+const route = useRoute()
+const router = useRouter()
+const conversationId = ref<number | null>(null)
+const conversationTitle = ref<string>('')
+const defaultMessages:Array<MessageItem> = []
 let messages = ref<MessageItem[]>(defaultMessages)
 let input = ref<string>('')
+const ts = ref(Date.now())
+// 加载历史对话
+const loadConversation = async (id: number) => {
+  try {
+    const msgs = await invoke('get_conversation_messages', { conversationId: id })
+    if (Array.isArray(msgs)) {
+      messages.value.splice(0, messages.value.length, ...(msgs as MessageItem[]))
+      await nextTick()
+      conversationId.value = id
+      throttleEmitScrollToBottom()
+    } else {
+      console.error('加载对话返回格式错误')
+      router.push('/chat/new')
+    }
+  } catch (e) {
+    console.error('加载对话失败:', e)
+    router.push('/chat/new')
+  }
+}
+
+onMounted(async()=>{
+  $ApiStore.getApifromConfig()
+  emitter.on('reset-chat', resetHistory)
+})
+onBeforeUnmount(()=>{
+  unListenAll()
+  emitter.off('reset-chat', resetHistory)
+})
+// 监听路由参数变化
+watch(
+  () => route.params.id,
+  async (newId) => {
+    if (newId === 'new') {
+      conversationId.value = null
+      messages.value = []
+      conversationTitle.value = ''
+      input.value = ''
+      $AppStore.setGenerating(false)
+    } else if (newId) {
+      await loadConversation(Number(newId))
+    }
+  },
+  { immediate: true, flush: 'post'}
+)
+
+const setMessage = (mi:MessageItem) => {
+  messages.value.push(mi);
+  console.log("add ",messages.value.length);
+  nextTick(() => {
+    throttleEmitScrollToBottom()
+  })
+}
 
 
-const setMessage = (mi:MessageItem) => {messages.value.push(mi);throttleEmitScrollToBottom()}
-// 顶栏高度
-const inputHeigth = 50;
-const inputHeigthString = computed(() => `${inputHeigth}px`)
-
-const submitUserMessage = () => {
+const submitUserMessage = async() => {
   if(input.value.trim() == '') return
-  const timestamp = Date.now()
-  const m:MessageItem = {role:'user', content:input.value, timestamp:timestamp - 1}
+  ts.value = Date.now()
+  const m:MessageItem = {role:'user', content:input.value, timestamp:ts.value - 5,reasoning_content: ''}
   setMessage(m)
-  input.value = ''
-  generateBotResponseStream()
+  console.log("add user ",messages.value);
+  const newMessage = {role:'assistant-generating', content:'', timestamp:ts.value, reasoning_content:''}
+  setMessage(newMessage)
+  // 如果是新对话，先创建对话
+  if (!conversationId.value) {
+    try {
+      // 使用第一条用户消息的前20个字符作为对话标题
+      const title = input.value.slice(0, 20) + (input.value.length > 20 ? '...' : '')
+      conversationId.value = await invoke('create_conversation', { title })
+      emitter.emit('conversation-updated')
+      history.replaceState(history.state, '', `?id=${conversationId.value}`)
+      // await router.replace(`/chat/${conversationId.value}`)
+    } catch (e) {
+      window.$message.error(`'创建对话失败: ${e}`,{duration: 5000})
+      return
+    }
+  }
+    // 保存消息
+  try {
+    await invoke('save_message', { 
+      conversationId: conversationId.value,
+      message: m
+    })
+    input.value = ''
+    generateBotResponseStream()
+  } catch (e) {
+    window.$message.error(`保存消息失败:${e}`, {duration: 5000})
+  }
 }
 
 const $AppStore = useAppStore()
 const $ApiStore = useApiStore()
 let {api,smooth} = storeToRefs($ApiStore)
 let {generating} = storeToRefs($AppStore)
-let ts = Date.now()
-onMounted(async()=>{
-  $ApiStore.getApifromConfig()
-})
-onBeforeUnmount(()=>{
-  unListenAll()
-})
+const isExpanded = ref(false)
+const toggleExpand = () => {
+  isExpanded.value = !isExpanded.value
+}
 const generateBotResponseStream = async () => {
-  ts = Date.now()
   const currentMessages:any = []
-  messages.value.forEach((item) => currentMessages.push({role:item.role, content:item.content,reasoning_content:''}))
-  const newMessage = {role:'assistant', content:'', timestamp:ts, reasoning_content:''}
-  setMessage(newMessage)
-  invoke('completions_stream',{id:ts,messages:currentMessages}).then((res) => {
+  messages.value.forEach((item) => {
+    if (item.role !== 'assistant-generating'){
+      currentMessages.push({role:item.role, content:item.content,reasoning_content:'',timestamp:item.timestamp})
+    }
+  })
+  // const newMessage = {role:'assistant-generating', content:'', timestamp:ts.value, reasoning_content:''}
+  // setMessage(newMessage)
+  console.log(currentMessages);
+  
+  try {
+    const res = await invoke('completions_stream', {
+      id: ts.value,
+      conversationId: conversationId.value,
+      messages: currentMessages
+    })
     let m = res as MessageItem
-    m.timestamp = ts
+    m.timestamp = ts.value
+    
+    // 保存助手的回复
+    await invoke('save_message', {
+      conversationId: conversationId.value,
+      message: m
+    })
     updateHistoryStream(m)
-  }).catch((e:string) => console.log("catch",e))
+  } catch (e) {
+    window.$message.error(`生成回复失败:${e}`, {duration: 5000})
+  }
 }
 
 const updateHistoryStream = (m: MessageItem) => {
@@ -68,16 +160,31 @@ const updateHistoryStream = (m: MessageItem) => {
   throttleEmitScrollToBottom()
 }
 
-const resetHistory = async() => messages.value.splice(0, messages.value.length, defaultMessages[0])
+const resetHistory = async() => {
+  messages.value.splice(0, messages.value.length)
+  await nextTick()
+  if (route.path !== '/chat/new') {
+    history.replaceState(history.state, '', '/chat/new') // 如果不在新对话页面，则跳转
+  }
+  conversationId.value = null
+  conversationTitle.value = ''
+  input.value = ''
+  $AppStore.setGenerating(false)
+}
 const throttleEmitScrollToBottom  = throttle(() => emitter.emit('scrollToBottom'), 1000)
 </script>
 <template>
   <div class="chat-view">
-    <ChatBoard :messages="messages" :smoothing="smooth" :model="api.model"/>
-    <form class="chat-input" @submit="(e) =>{
+    <ChatBoard :messages="messages" :smoothing="smooth" :model="api.model" :key="conversationId || 'new'"/>
+    <form class="chat-input" 
+    :class="{ 'expanded': isExpanded }"
+    @submit="(e) =>{
       e.preventDefault()
       submitUserMessage()
     }">
+      <div class="expand-button" @click="toggleExpand">
+        <div class="expand-icon">
+      </div></div>
       <textarea 
       placeholder="Type a message..." 
       v-model="input"  
@@ -96,8 +203,8 @@ const throttleEmitScrollToBottom  = throttle(() => emitter.emit('scrollToBottom'
         </n-icon>
       </button>
       <button type="submit" class="submit-btn" v-if="!generating">
-        <n-icon size="24">
-          <Send/>
+        <n-icon size="24" :class="{ 'disabled-icon': !input.trim() }">
+          <ReturnUpForwardOutline/>
         </n-icon>
       </button>
       <button type="button" class="pause-btn" v-else @click="(e)=>{
@@ -112,84 +219,191 @@ const throttleEmitScrollToBottom  = throttle(() => emitter.emit('scrollToBottom'
   </div>
 
 </template>
-
-<style scoped lang="less">
-.chat-view{
+<style lang="less" scoped >
+.chat-view {
   position: relative;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-.chat-input{
-  position: absolute;
-  bottom: 0;
+.chat-input {
+  position: fixed;
+  bottom: 10px;
   width: 60%;
-
   display: flex;
-  padding: 5px;
-  border-radius: 10px;
-  background-color: #eee;
+  padding: 8px;
+  border-radius: 12px;
+  background-color: #f5f7fa;
   box-sizing: border-box;
-  textarea{
+  transition: all 0.3s ease;
+  z-index: 10;
+  &.expanded {
+    textarea {
+      height: 150px;
+    }
+  }
+  textarea {
+    transition: height 0.3s ease;
     width: 90%;
-    border-radius: 5px;
-    background-color: #eee;
-    padding-left: 17px;
-    padding-top: 15px;
+    border-radius: 8px;
+    background-color: #f5f7fa;
+    padding: 15px;
     height: 50px;
     font-size: 1rem;
     box-sizing: border-box;
-    overflow: auto; /* 允许滚动 */
-    resize: none; /* 禁用调整大小手柄 */
-    scrollbar-width: none; /* 隐藏滚动条（Firefox） */
-    -ms-overflow-style: none; /* 隐藏滚动条（IE/Edge） */
-    position: relative; 
-  }
-  button{
-    height: v-bind(inputHeigthString);
-    border-radius: 5px;
-    padding:10px 15px;
-    color: #fff;
-    background-color: #6d4fc2;
-    cursor: pointer;
-    &.reset-btn{
-      &:hover{
-        background-color: #593bab;
-      }
+    overflow: auto;
+    resize: none;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    position: relative;
+    border: none;
+    color: #333;
+    &::placeholder {
+      color: #999;
     }
-    &.pause_btn{
-      background-color: #fff;
-      color: #333;
-      &:hover{
-        background-color: #593bab;
-      }
-    }
-  }
-  &:valid button{
-    display: block;
-    background-color: #6d4fc2;
-    cursor: pointer;
-    &:hover{
-      background-color: #593bab;
-      border: none;
+    &:focus {
       outline: none;
     }
-    &:active{
-      border: none;
+  }
+  .expand-button {
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 26px;
+    height: 16px;
+    background-color: #f5f7fa;
+    border: 1px solid #e1e1e1;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    .expand-icon {
+      width: 10px;
+      height: 2px;
+      background-color: #4a90e2;
+      position: relative;
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: -3px;
+        width: 100%;
+        height: 2px;
+        background-color: #4a90e2;
+      }
     }
   }
-  &:invalid  button.submit-btn{
-    background-color: gray;
-    cursor: not-allowed;
+  button {
+    height: 50px;
+    border-radius: 8px;
+    padding: 10px 15px;
+    color: #fff;
+    background-color: #4a90e2;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    margin-left: 8px;
+    .disabled-icon {
+      opacity: 0.4;
+      transform: scale(0.9);
+      filter: grayscale(0.5);
+      transition: all 0.3s ease;
+    }
+    &.reset-btn {
+      background-color: #f5f7fa;
+      color: #4a90e2;
+      border: 1px solid #e1e1e1;
+      
+      &:hover {
+        background-color: #e1eefb;
+        color: #357abd;
+      }
+    }
+
+    &.submit-btn {
+      &:hover {
+        background-color: #357abd;
+      }
+    }
+
+    &.pause-btn {
+      background-color: #fff;
+      color: #666;
+      border: 1px solid #e1e1e1;
+      
+      &:hover {
+        background-color: #f5f7fa;
+        color: #4a90e2;
+      }
+    }
   }
 
-  &:focus-within{
-    outline: 2px solid #6d4fc2;
+  &:valid button {
+    &.reset-btn {
+      background-color: #fff;
+      color: #4a90e2;
+      border: 1px solid #e1e1e1;
+      
+      &:hover {
+        background-color: #e1eefb;
+        color: #357abd;
+      }
+    }
+    
+    &.submit-btn {
+      background-color: #4a90e2;
+      
+      &:hover {
+        background-color: #357abd;
+      }
+    }
+  }
+
+  &:invalid button.submit-btn {
+    background-color: #f5f7fa;
+    border: 1px solid #e1e1e1;
+    cursor: default;
+    color: #4a90e2;
+    .disabled-icon {
+      opacity: 0.65;
+      transform: scale(0.95);
+      filter: grayscale(0.3);
+    }
+    &:hover {
+      background-color: #f5f7fa;
+      .disabled-icon {
+        opacity: 0.75;
+        transform: scale(0.97);
+      }
+    }
+  }
+
+  &:focus-within {
+    outline: 1.5px solid #4a90e2;
+    background-color: #fff;
+    box-shadow: 0 2px 12px rgba(74, 144, 226, 0.1);
+    bottom: 21px;
   }
 
   @media screen and (max-width: 768px) {
-    button{
+    width: 90%;    // 移动端适配
+    bottom: 10px;
+    &:focus-within {
+      bottom: 11px;
+    }
+    button {
       padding: 5px 10px;
     }
   }

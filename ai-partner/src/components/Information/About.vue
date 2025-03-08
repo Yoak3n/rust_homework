@@ -24,14 +24,7 @@
 
         </div>
       </n-tab-pane>
-      <!-- <n-tab-pane name="chap2" tab="第三章">
-        但是忽然，公寓的烟味消失，火警也停了。我的女朋友走进了房间，让我震惊的是，她摘下了自己的假发，她是
-        Jeff Bezos（Amazon 老板）假扮的！<br><br>
-        “我对你坚持顾客至上的原则感到十分骄傲”，说完，他递给我一张五美金的亚马逊礼品卡，从我家窗户翻了出去，跳上了一辆
-        Amazon 会员服务的小货车，一溜烟离开了。<br><br>虽然现在我已不在 Amazon
-        工作，但我还是非常感激在哪里学的到的经验，这些经验我终身难忘。你们同意么？
-      </n-tab-pane> -->
-      <n-tab-pane name="chap3" tab="版本信息" display-directive="show-lazy">
+      <n-tab-pane name="chap3" tab="版本信息" display-directive="show:lazy">
         <header class="brand-header">
           <img src="/src/assets/tauri.svg" alt="App Logo" class="app-logo" />
           <div class="title-group">
@@ -88,13 +81,13 @@
         </div>
         <!-- 操作按钮组 -->
         <div class="action-buttons">
-          <button class="btn" @click="checkUpdate">
+          <button class="btn" >
             <i class="icon-update"></i> 检查更新
           </button>
           <button class="btn" @click="openLogsFolder">
             <i class="icon-folder"></i> 打开所在目录
           </button>
-          <button class="btn" @click="copySystemInfo">
+          <button class="btn" >
             <i class="icon-copy"></i> 复制诊断信息
           </button>
         </div>
@@ -116,16 +109,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, onMounted, version } from 'vue';
-import { NButton, NTabs, NTabPane,NDivider,NAvatar } from 'naive-ui';
+import { NTabs, NTabPane,NDivider,NAvatar } from 'naive-ui';
 import { getVersion, getName, getTauriVersion } from '@tauri-apps/api/app'
 import { invoke } from '@tauri-apps/api/core';
 import {open} from '@tauri-apps/plugin-shell'
-import versionJson from '../../../utils/versionJson.json'
+import versionJson from '../../utils/versionJson.json'
 const darkMode = ref(false);
-const showLicenseDialog = ref(false);
-const selectedLibrary = ref(null);
 
 let appInfo = reactive({
   name: 'My Application',
@@ -145,19 +136,12 @@ onMounted(async () => {
   appInfo.buildDate = new Date(versionJson.compileTime).toLocaleDateString();
 });
 
-const checkUpdate = async () => {
-  // 实现更新检查逻辑
-};
 
 const openLogsFolder= async () => {
   const pwd = await invoke('get_app_install_path')
-  open(pwd)
+  open(pwd as string)
 }
 
-const showLicense = (library) => {
-  selectedLibrary.value = library;
-  showLicenseDialog.value = true;
-};
 
 </script>
 

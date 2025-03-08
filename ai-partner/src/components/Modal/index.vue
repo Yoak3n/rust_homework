@@ -1,16 +1,20 @@
 <template>
-    <n-modal :show="props.show" @update:show="()=>props.switchCallback(!show)" >
-        <n-card size="large">
-            <SettingView :switchCallback="props.switchCallback" v-if="props.modalKey==='setting'" />
-            <AboutView :switchCallback="props.switchCallback" v-if="props.modalKey==='about'" />
-        </n-card>
-    </n-modal>
+    <n-config-provider :theme-overrides="modalThemeOverrides">
+        <n-modal :show="props.show" @update:show="()=>props.switchCallback(!show)" >
+            <n-card size="large">
+                <SettingView :switchCallback="props.switchCallback" v-if="props.modalKey==='setting'" />
+                <About :switchCallback="props.switchCallback" v-if="props.modalKey==='about'" />
+            </n-card>
+        </n-modal>
+    </n-config-provider>
 </template>
 
 <script lang="ts" setup>
-import { NModal,NCard } from 'naive-ui';
+import { NModal,NCard,NConfigProvider } from 'naive-ui';
 import SettingView from './Setting.vue'
-import AboutView from '../../components/Infomation/About/index.vue'
+import About from '../Information/About.vue'
+import { modalThemeOverrides } from '../../utils';
+
 const props = defineProps({
     switchCallback:{
         type:Function,

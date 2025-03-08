@@ -1,77 +1,8 @@
-#[tauri::command]
-pub fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
-use tauri::{
-    AppHandle, Emitter,
-    Error, Manager, 
-    PhysicalSize, State, 
-    WebviewUrl, WebviewWindowBuilder
-};
-use super::{model::*, state::AppState};
-#[tauri::command]
-pub async fn create_dialog(app_handle: AppHandle) -> Result<(), Error> {
-    match app_handle.get_webview_window("dialog")  {
-        Some(w) => {
-            let v = w.is_visible()?;
-            if v {
-                println!("hide");
-                w.set_always_on_top(false)?;
-                w.hide()?;
-            }else{
-                println!("show");
-                w.set_always_on_top(true)?;
-                w.show()?;
-            }
-        },
-        None => {
-            let window = WebviewWindowBuilder::new(
-                &app_handle ,"dialog", 
-                WebviewUrl::App("/dialog".into()))
-                .transparent(true)
-                .center()
-                .title("")
-                .resizable(false)
-                .shadow(false)
-                .always_on_top(true)
-                .decorations(false)
-                .build()?;
-
-            window.set_size(PhysicalSize::new(600, 400))?;
-
-        }
-    } 
-    Ok(())
-}
-
-
-use std::env::current_exe;
-#[tauri::command]
-pub fn get_app_install_path() -> Result<String, String> {
-    let exe_path = current_exe().map_err(|e| e.to_string())?;
-    
-    let install_dir = if cfg!(target_os = "macos") {
-        // macOS: 可执行文件位于 .app/Contents/MacOS/ 下
-        exe_path.parent()  // MacOS 目录
-            .and_then(|p| p.parent())  // Contents 目录
-            .and_then(|p| p.parent())  // .app 目录
-    } else {
-        // Windows 和 Linux: 可执行文件在安装目录的子目录或根目录
-        exe_path.parent()
-    };
-    
-    install_dir
-        .ok_or("无法确定安装目录".to_string())
-        .and_then(|p| p.to_str()
-            .ok_or("路径转换错误".to_string())
-            .map(|s| s.to_string()))
-}
-
 use futures::StreamExt;
 use reqwest::{Client,header::{HeaderMap,HeaderValue,AUTHORIZATION}};
 use serde_json::json;
-
+use super::super::state::AppState;
+use tauri::Emitter;
 #[tauri::command]
 pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,AppState>,id: usize,messages:Vec<MessageItem>) -> Result<MessageItem, String> {
     let api = state.config.try_lock().expect("get config of state error").api.clone();
@@ -108,23 +39,22 @@ pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,Ap
         return Err(response.status().to_string());
     }
     let mut full = MessageItem::default();
-    let mut index:usize = 0;
+    full.timestamp = id; // 设置消息的时间戳为传入的id
     let mut stream = response.bytes_stream();
     while let Some(chunk) = stream.next().await {
-        index += 1;
         match chunk {
             Ok(bytes) => {
                 if let Some(ret) = handle_stream_data(&bytes){
                     for item in ret{
                         full.append(&item);
-                        let payload = StreamEmitter::new(item, index, id);
+                        let payload = StreamEmitter::new(item, 0, full.timestamp); // 使用消息时间戳作为id
                         if let Err(e) = app_handle.emit("stream-data", payload) {
                             eprintln!("事件发送失败: {}", e);
                         }
                     }
                 }else{
                     let item = MessageType::DONE;
-                    let payload = StreamEmitter::new(item, index, id);
+                    let payload = StreamEmitter::new(item, 0, full.timestamp);
                     if let Err(e) = app_handle.emit("stream-data", payload) {
                         eprintln!("事件发送失败: {}", e);
                     }
@@ -132,7 +62,7 @@ pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,Ap
             }
             Err(e) => {
                 println!("流错误: {}", e);
-                let payload = StreamError::new(e.to_string(), id);
+                let payload = StreamError::new(e.to_string(), full.timestamp);
                 let _ = app_handle.emit_to("main","stream-error", &payload);
             }
         }
@@ -171,31 +101,8 @@ fn handle_stream_data(data: &[u8])->Option<Vec<MessageType>> {
 }
 
 
-use crate::store::setting::Configuration;
-#[tauri::command]
-pub async fn set_config(state : State<'_,AppState>,new_config: Configuration) -> Result<(), String> {
-    // update_config(|c|{
-    if let Err(e) = Configuration::update_config(move|config|
-        {
-            config.api.key = new_config.api.key.clone();
-            config.api.url = new_config.api.url.clone();
-            config.api.model = new_config.api.model.clone();
-            config.smooth = new_config.smooth.clone();
-            let mut c = state.config.try_lock().expect("set config lock error");
-            *c = config.clone();
-        })
-    {
-        return Err(e.to_string());
-    }
-    // });
-    Ok(())
-}
+use crate::model::{table::Conversation, MessageItem, MessageType, StreamData, StreamEmitter, StreamError};
 
-#[tauri::command]
-pub async fn get_config(state : State<'_,AppState>) -> Result<Configuration, String> {
-    let config =  state.config.try_lock().expect("get config lock error");
-    Ok(config.clone())
-}
 
 #[tauri::command]
 pub async fn pause_stream(app: tauri::AppHandle,id:usize) -> Result<(), String> {
@@ -208,7 +115,44 @@ pub async fn pause_stream(app: tauri::AppHandle,id:usize) -> Result<(), String> 
     Ok(())
 }
 
+use tauri::State;
+
+
 #[tauri::command]
-pub async fn on_drag_end_invoke(window: tauri::Window) {
-    println!("窗口拖动结束！当前位置: {:?}", window.outer_position().unwrap());
+pub async fn create_conversation(state: State<'_, AppState>, title: String) -> Result<i64, String> {
+    state.db.create_conversation(&title)
+        .map_err(|e| e.to_string())
+}
+#[tauri::command]
+pub async fn get_conversations(state: State<'_, AppState>) -> Result<Vec<Conversation>, String> {
+    state.db.get_conversations()
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn save_message(
+    state: State<'_, AppState>, 
+    conversation_id: i64,
+    message: MessageItem
+) -> Result<i64, String> {
+    state.db.save_message(conversation_id, &message)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn get_conversation_messages(
+    state: State<'_, AppState>,
+    conversation_id: i64
+) -> Result<Vec<MessageItem>, String> {
+    state.db.get_conversation_messages(conversation_id)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn delete_conversation(
+    state: State<'_, AppState>,
+    conversation_id: i64
+) -> Result<(), String> {
+    state.db.delete_conversation(conversation_id)
+        .map_err(|e| e.to_string())
 }

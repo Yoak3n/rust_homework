@@ -39,25 +39,49 @@
                 </n-input>
             </n-form-item>
             <n-form-item label="model">
-                <n-input placeholder="请输入模型名称"  v-model:value="model!.api.model"/>
+                <!-- <n-input placeholder="请输入模型名称"  v-model:value="model!.api.model"/> -->
+                <n-select
+                    v-model:value="model!.api.model" 
+                    :options="modelOptions"
+                    placeholder="请选择或输入模型名称"
+                    filterable
+                    tag
+                >
+                </n-select>
+                <n-button 
+                secondary 
+                type="info" 
+                @click="$ApiStore.clearModelHistory()"
+                :disabled="!modelHistory.length"
+            >清除历史</n-button>
             </n-form-item>
             <n-divider></n-divider>
             <n-form-item label="smooth (invalid)" >
                 <n-switch v-model:value="model!.smooth" disabled/>
             </n-form-item>                
             <n-form-item>
-                <n-button type="primary" style="margin: 0 auto;width:20%" @click="saveSetting">确定</n-button>
+                <n-button type="primary" class="confirm-btn" style="margin: 0 auto;width:20%" @click="saveSetting">确定</n-button>
             </n-form-item>
         </n-form>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { ref,onMounted } from 'vue';
-import { NForm, NFormItem, NInput, NButton, NIcon,NSwitch,NDivider } from 'naive-ui';
+import { ref,onMounted, computed } from 'vue';
+import { NForm, NFormItem, NInput, NButton, NIcon,NSwitch,NDivider,NSelect } from 'naive-ui';
 import type { AppSetting } from '../../types';
+import { storeToRefs } from 'pinia'
 import { useApiStore } from '../../store';
 import {updateAllSetting,querySetting} from '../../api/db'
+
+const $ApiStore = useApiStore();
+const { modelHistory } = storeToRefs($ApiStore)
+const modelOptions = computed(() => {
+    return modelHistory.value.map(m => ({
+        label: m,
+        value: m
+    }));
+})
 let model = ref<AppSetting|null>({
     api:{
         url: '', key: '', model: ''
@@ -70,6 +94,7 @@ onMounted(async()=>{
     if(s){
         model.value = s;
     }
+    $ApiStore.initModelHistory();
 })
 const props = defineProps({
     switchCallback: {
@@ -78,10 +103,13 @@ const props = defineProps({
     }
 
 })
-const $ApiStore = useApiStore();
+
 const saveSetting = async()=>{
     if(model.value == null) return;
     const s:AppSetting = model.value;
+    if (s.api.model) {
+        $ApiStore.addModelToHistory(s.api.model);
+    }
     await updateAllSetting(s)
     $ApiStore.getApifromConfig();
     window.$message.success('保存成功');
@@ -97,6 +125,24 @@ onMounted(()=>saveSetting)
     justify-content: center;
     align-items: start;
     margin: 5rem 0 0 0;
+    .confirm-btn {
+        margin: 0 auto;
+        width: 120px;
+        height: 40px;
+        font-size: 15px;
+        font-weight: 500;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);
+        }
+        
+        &:active {
+            transform: translateY(0);
+        }
+    }
 }
 @media screen and (max-width: 768px) {
     .setting-wrapper{

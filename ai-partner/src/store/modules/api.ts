@@ -8,7 +8,8 @@ export const useApiStore = defineStore("api", {
         key: "",
         model:""
     },
-    smooth: false
+    smooth: false,
+    modelHistory: [] as string[]
   }),
   actions: {
         async getApifromConfig (){
@@ -17,6 +18,22 @@ export const useApiStore = defineStore("api", {
           this.api.key = setting.api.key
           this.api.model = setting.api.model
           this.smooth = setting.smooth
+      },
+      initModelHistory() {
+        const history = localStorage.getItem('modelHistory')
+        if (history) {
+            this.modelHistory = JSON.parse(history)
+        }
+      },
+      addModelToHistory(model: string) {
+        if (!this.modelHistory.includes(model)) {
+            this.modelHistory.push(model)
+            localStorage.setItem('modelHistory', JSON.stringify(this.modelHistory))
+          }
+      },
+      clearModelHistory() {
+        this.modelHistory = []
+        localStorage.removeItem('modelHistory')
       }
   }
 })

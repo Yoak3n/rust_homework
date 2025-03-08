@@ -1,5 +1,5 @@
 use serde::{Deserialize,Serialize};
-
+pub mod table;
 
 #[allow(dead_code)]
 #[derive(Serialize,Deserialize,Clone)]
@@ -7,6 +7,7 @@ pub struct MessageItem{
     pub role: String,
     pub content: String,
     pub reasoning_content: String,
+    pub timestamp: usize,
 }
 impl Default for MessageItem {
     fn default() -> Self {
@@ -14,6 +15,7 @@ impl Default for MessageItem {
             role: "assistant".to_string(),
             content: "".to_string(),
             reasoning_content: "".to_string(),
+            timestamp: 0,
         }
     }
 }

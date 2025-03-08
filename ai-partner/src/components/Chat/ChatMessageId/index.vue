@@ -18,7 +18,6 @@ let messageUpdate = ref<MessageItem>(
         reasoning_content: ''
     }
 )
-let index = 0
 let isThinking = ref(false)
 const props = defineProps({
     message: {
@@ -31,23 +30,33 @@ const $AppStore = useAppStore()
 
 
 onMounted(async () => {
-    messageUpdate.value = props.message
+    messageUpdate.value = {
+        ...props.message,
+        content: props.message.content || '',
+        reasoning_content: props.message.reasoning_content || ''
+    }
 
-    if (props.message.role == 'assistant') {
+    if (messageUpdate.value.role == 'assistant-generating') {
+        await nextTick()
         const unlistenFnData = await listen('stream-data', (event) => {
             const payload = event.payload as Payload
-            if (payload.id != props.message.timestamp) return
-            index++
+            if (payload.id!= props.message.timestamp) return
+            messageUpdate.value = {
+                ...messageUpdate.value,
+                role: 'assistant',
+                content: payload.message_type === 'content' 
+                    ? (messageUpdate.value.content || '') + payload.data 
+                    : messageUpdate.value.content,
+                reasoning_content: payload.message_type === 'reasoning_content'
+                    ? (messageUpdate.value.reasoning_content || '') + payload.data
+                    : messageUpdate.value.reasoning_content
+            }
             if (payload.message_type == 'reasoning_content') {
-                if (payload.index != index) return
                 isThinking.value = true
                 $AppStore.setGenerating(true)
-                messageUpdate.value!.reasoning_content += payload.data
             } else if (payload.message_type == 'content') {
-                if (payload.index != index) return
                 isThinking.value = false
                 $AppStore.setGenerating(true)
-                messageUpdate.value!.content += payload.data
             } else {
                 unlistenFnData()
                 unlistenFnError()
@@ -55,11 +64,11 @@ onMounted(async () => {
                 isThinking.value = false
             }
             nextTick(() => {
+                console.log(messageUpdate.value);
                 throttleEmitScrollToBottom()
             })
         })
         const unlistenFnError = await listen('stream-error', (event) => {
-            console.log(event);
             const payload = event.payload as Payload
             if (payload.id != props.message.timestamp) return
             messageUpdate.value.role = 'system'
@@ -84,23 +93,23 @@ onBeforeUnmount(() => {
 
 <template>
     <div
-        :class="`message ${message?.role == 'assistant' ? 'assistant' : message?.role == 'user' ? 'user' : message?.role == 'system' ? 'system' : ''}`">
+        class="message"
+        :class="messageUpdate.role"
+        >
         <div class="message-item">
-            <n-spin v-if="message?.role == 'assistant' || message?.role == 'system'" :show="isThinking" stroke="#593bab" size="large">
+            <n-spin v-if="messageUpdate.role === 'assistant' || messageUpdate.role === 'system'" :show="isThinking" stroke="#4a90e2" size="large">
                 <img class="bot-avatar" 
-                src="../../../assets/bot.svg">
+                src="../../../assets/bot.svg"/>
             </n-spin>
-
-            </img>
             <div class="output">
                 <div class="thinking">
                     <div class="reasoning-text" v-if="messageUpdate.reasoning_content != ''&& messageUpdate.reasoning_content != null &&messageUpdate.reasoning_content != undefined">
                         {{messageUpdate?.reasoning_content }}
                     </div>
                 </div>
-                <div class="message-content" v-if="messageUpdate?.content != ''">
+                <div class="message-content" v-if="messageUpdate.content != ''">
                     <div class="message-text">
-                        <MarkdownRender :source="messageUpdate?.content" />
+                        <MarkdownRender :source="messageUpdate.content" />
                     </div>
                 </div>
             </div>
@@ -123,53 +132,63 @@ onBeforeUnmount(() => {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background-color: #593bab;
+            background-color: #4a90e2;
+            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);
         }
         .output {
             .thinking {
                 .reasoning-text {
-                    padding: 12px 10px;
+                    padding: 12px 16px;
                     position: relative;
-                    font-size: 0.8rem;
+                    font-size: 0.85rem;
                     white-space: pre-line;
-                    color: #555;
+                    color: #666;
+                    background-color: #f5f7fa;
+                    border-radius: 10px;
+                    margin-bottom: 8px;
                 }
             }
             .message-content {
-                background-color: #f6f2ff;
+                background-color: #edf4fc;
+                box-shadow: 0 2px 8px rgba(74, 144, 226, 0.1);
                 .message-text {
                     padding: 12px 16px;
                     position: relative;
-                    font-size: 0.9rem;
+                    font-size: 0.95rem;
                     white-space: normal;
+                    color: #333;
                 }
             }
         }
     }
 
-    &.assistant {
+    &.assistant,
+    &.assistant-generating {
         .message-item {
             .message-content {
-                border-radius: 13px 13px 13px 3px;
+                border-radius: 12px 12px 12px 2px;
             }
         }
     }
     &.system {
         .message-item{
             .message-content{
-                color: #f00;
-                background-color: #f1f1f1;
-                border-radius: 13px 13px 13px 3px;
+                color: #e54d42;
+                background-color: #fff2f0;
+                border-radius: 12px 12px 12px 2px;
+                border: 1px solid #ffccc7;
             }
             .bot-avatar{
-                background-color: #f44;
+                background-color: #e54d42;
             }
         }
     }
     &.user{
         .message-item{
             .message-content{
-                border-radius: 13px 13px 3px 13px;
+                background-color: #fff;
+                border: 1px solid #e1eefb;
+                border-radius: 12px 12px 2px 12px;
             }
 
         }

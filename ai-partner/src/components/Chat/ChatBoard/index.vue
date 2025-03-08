@@ -14,7 +14,7 @@ onUnmounted(() => {
   emitter.off('scrollToBottom')
 })
 
-
+// const messageList = computed(() => props.messages || [])
 
 const scrollToBottom = () => {
   nextTick(() => {
@@ -23,7 +23,7 @@ const scrollToBottom = () => {
     }
   });
 };
-let props = defineProps(
+defineProps(
   {
     messages: {
       type: Array as PropType<MessageItem[]>,
@@ -45,7 +45,8 @@ let props = defineProps(
   <div class="chat-board" ref="chatBody">
     <h1>{{model}}</h1>
     <div class="chat-body">
-      <ChatMessageId v-for="message in props.messages" :message="message" :key="message.timestamp"></ChatMessageId>
+      <ChatMessageId v-for="message in messages" :message="message" 
+      :key="`${message.timestamp}-${message.role}`"></ChatMessageId>
     </div>
   </div>
 </template>
