@@ -1,12 +1,14 @@
 <template>
-    <n-config-provider :theme-overrides="modalThemeOverrides">
+
         <n-modal :show="props.show" @update:show="()=>props.switchCallback(!show)" >
             <n-card size="large">
-                <SettingView :switchCallback="props.switchCallback" v-if="props.modalKey==='setting'" />
+                <n-config-provider :theme-overrides="modalThemeOverrides" v-if="props.modalKey==='setting'">
+                <SettingView :switchCallback="props.switchCallback"  />
+            </n-config-provider>
                 <About :switchCallback="props.switchCallback" v-if="props.modalKey==='about'" />
             </n-card>
         </n-modal>
-    </n-config-provider>
+
 </template>
 
 <script lang="ts" setup>

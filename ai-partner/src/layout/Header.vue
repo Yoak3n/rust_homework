@@ -1,5 +1,11 @@
 <script lang="ts" setup>
-import { computed, toRefs } from 'vue'
+import { computed, toRefs,ref } from 'vue'
+import { getCurrentWindow } from '@tauri-apps/api/window'
+import { exit } from '@tauri-apps/plugin-process';
+
+import { useAppStore,type CloseAction } from '../store';
+
+const heightString  = computed(() => `${heigth.value}px`)
 const props = defineProps({
     heigth:{
         type: Number,
@@ -7,9 +13,10 @@ const props = defineProps({
     }
 })
 const {heigth} = toRefs(props)
-const heightString  = computed(() => `${heigth.value}px`)
-import { getCurrentWindow } from '@tauri-apps/api/window'
-// import { exit } from '@tauri-apps/plugin-process';
+const appStore = useAppStore()
+const showCloseDialog = ref(false)
+const rememberChoice = ref(false)
+
 const minimize = () => {
     let w = getCurrentWindow()
     w.minimize()
@@ -19,10 +26,35 @@ const toggleFullscreen = async() => {
     const isFullscreen = await w.isFullscreen()
     w.setFullscreen(!isFullscreen)
 }
-const close = () => {
+const hideToTray = () => {
     let w = getCurrentWindow()
+    showCloseDialog.value = false
     w.hide()
 }
+const handleCloseAction = (action: CloseAction) => {
+    if (rememberChoice.value) {
+        appStore.setCloseAction(action)
+    }
+    if (action === 'hide') {
+        hideToTray()
+    } else {
+        exit(0)
+    }
+}
+const close = () => {
+    if (appStore.closeAction=== 'ask'){
+        showCloseDialog.value = true
+    }else if (appStore.closeAction === 'hide') {
+        hideToTray()
+    }else if (appStore.closeAction === 'exit') {
+        exit(0)
+    }
+}
+const cancelClose = () => {
+    showCloseDialog.value = false
+}
+
+
 </script>
 <template>
     <div class="header" data-tauri-drag-region>
@@ -40,7 +72,21 @@ const close = () => {
             </button>
         </div>
     </div>
-
+    <div v-if="showCloseDialog" class="close-dialog-overlay">
+        <div class="close-dialog">
+            <h3>关闭确认</h3>
+            <p>您想要如何关闭应用程序？</p>
+            <div class="dialog-buttons">
+                <button @click="handleCloseAction('hide')">隐藏到托盘</button>
+                <button @click="handleCloseAction('exit')" class="exit-button">退出程序</button>
+                <button @click="cancelClose" class="cancel-button">取消</button>
+            </div>
+            <div class="remember-choice">
+                <input type="checkbox" id="remember-choice" v-model="rememberChoice">
+                <label for="remember-choice">记住我的选择</label>
+            </div>
+        </div>
+    </div>
 </template>
 
 
@@ -86,6 +132,93 @@ const close = () => {
             line-height: 30px;
             background: transparent;
         }
+    }
+}
+.close-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.close-dialog {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    width: 300px;
+    text-align: center;
+    
+    h3 {
+        margin-top: 0;
+        color: #333;
+    }
+    
+    p {
+        margin-bottom: 20px;
+        color: #666;
+    }
+}
+
+.dialog-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    
+    button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        background-color: #f0f0f0;
+        color: #333;
+        
+        &:hover {
+            background-color: #e0e0e0;
+        }
+        
+        &.exit-button {
+            background-color: #ff4d4f;
+            color: white;
+            
+            &:hover {
+                background-color: #ff7875;
+            }
+        }
+        
+        &.cancel-button {
+            background-color: #1890ff;
+            color: white;
+            
+            &:hover {
+                background-color: #40a9ff;
+            }
+        }
+    }
+}
+
+.remember-choice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 10px;
+    
+    input[type="checkbox"] {
+        cursor: pointer;
+    }
+    
+    label {
+        cursor: pointer;
+        color: #666;
+        font-size: 14px;
     }
 }
 </style>

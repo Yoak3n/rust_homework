@@ -29,7 +29,7 @@ pub fn register_shortcuts(app: &App) -> Result<(), Error> {
 
 pub fn create_systray(app: &mut App) -> Result<(), Error> {
     let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-    let hide_i = MenuItem::with_id(app, "hide", "Hide", true, None::<&str>)?;
+    let hide_i = MenuItem::with_id(app, "hide", "GUI", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&hide_i, &quit_i])?;
     let _ = TrayIconBuilder::new()
         .menu(&menu)
@@ -41,10 +41,8 @@ pub fn create_systray(app: &mut App) -> Result<(), Error> {
                 if let Some(main_window) = app.get_webview_window("main") {
                     if main_window.is_visible().unwrap() {
                         main_window.hide().unwrap();
-                        hide_i.set_text("Show").unwrap();
                     } else {
                         main_window.show().unwrap();
-                        hide_i.set_text("Hide").unwrap();
                     }
                 }
             }
