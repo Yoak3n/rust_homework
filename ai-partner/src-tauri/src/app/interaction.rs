@@ -3,6 +3,7 @@ use tauri::{
 };
 use tauri::{App, Emitter, Error};
 use tauri_plugin_global_shortcut::{Builder, Code, Modifiers, ShortcutState};
+
 #[allow(dead_code)]
 pub fn register_shortcuts(app: &App) -> Result<(), Error> {
     let handle = app.handle();
@@ -37,6 +38,7 @@ pub fn create_systray(app: &mut App) -> Result<(), Error> {
         .menu(&menu)
         .show_menu_on_left_click(false)
         .icon(app.default_window_icon().unwrap().clone())
+        .tooltip("ai-partner")
         .on_tray_icon_event(move |tray_handle, event| {
             let app_handle = tray_handle.app_handle();
             // 检查是否是左键点击事件
