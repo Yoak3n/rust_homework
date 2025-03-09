@@ -106,7 +106,6 @@ use crate::model::{table::Conversation, MessageItem, MessageType, StreamData, St
 
 #[tauri::command]
 pub async fn pause_stream(app: tauri::AppHandle,id:usize) -> Result<(), String> {
-    println!("暂停流: {}", id);
     let item = MessageType::DONE;
     let payload = StreamEmitter::new(item, 0, id);
     if let Err(e) = app.emit("stream-data", payload) {

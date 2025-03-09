@@ -40,16 +40,16 @@ export function keyDown(e:KeyboardEvent, setKey:(value: string) => void) {
     } else {
         let newValue = '';
         if (e.ctrlKey) {
-            newValue = 'Ctrl';
+            newValue = 'ctrl';
         }
         if (e.shiftKey) {
-            newValue = `${newValue}${newValue.length > 0 ? '+' : ''}Shift`;
+            newValue = `${newValue}${newValue.length > 0 ? '+' : ''}shift`;
         }
         if (e.metaKey) {
             newValue = `${newValue}${newValue.length > 0 ? '+' : ''}${osType === 'Darwin' ? 'Command' : 'Super'}`;
         }
         if (e.altKey) {
-            newValue = `${newValue}${newValue.length > 0 ? '+' : ''}Alt`;
+            newValue = `${newValue}${newValue.length > 0 ? '+' : ''}alt`;
         }
         let code = e.code;
         if (code.startsWith('Key')) {

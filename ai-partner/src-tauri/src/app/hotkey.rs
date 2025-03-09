@@ -26,15 +26,13 @@ where
     };
     println!("register_shortcut: {}",hotkey);
     if !hotkey.is_empty() {
-        match app_handle
-            .global_shortcut()
-            .on_shortcut(hotkey.as_str(),move |_, _, event| {
+        let global_shortcut_manager = app_handle.global_shortcut();
+        match global_shortcut_manager.on_shortcut(hotkey.as_str(),move |_, _, event| {
                 if event.state == ShortcutState::Pressed {
                     handler();
                 }
             }){
             Ok(()) => {
-                set(&hotkey_name, &hotkey).unwrap();
                 println!("Registered global shortcut: {} for {}", hotkey, name);
             }
             Err(e) => {

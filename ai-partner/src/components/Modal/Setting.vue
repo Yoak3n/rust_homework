@@ -59,9 +59,16 @@
             </n-form-item>
             <n-divider></n-divider>
             <n-form-item label="快捷对话框" >
-                <n-input placeholder="按下按键设置快捷键" v-model:value="model!.hotkey.dialog" @keydown="(e)=>{
+                <n-input placeholder="按下按键设置快捷键" 
+                v-model:value="model!.hotkey.dialog" 
+                @keydown="(e)=>{
                     keyDown(e,updateHotKeyDialog)
-                }" />
+                }" 
+                @focus="()=>{
+                    unregister(model!.hotkey.dialog)
+                    model!.hotkey.dialog = '';
+                }"
+                />
             </n-form-item>                
             <n-form-item>
                 <n-button type="primary" class="confirm-btn" style="margin: 0 auto;width:20%" @click="saveSetting">确定</n-button>
@@ -78,7 +85,8 @@ import { storeToRefs } from 'pinia'
 import { useApiStore } from '../../store';
 import {updateAllSetting,querySetting} from '../../api/db'
 import { keyDown } from '../composables/recognize_key';
-
+import { invoke } from '@tauri-apps/api/core';
+import {isRegistered, unregister} from '@tauri-apps/plugin-global-shortcut'
 const $ApiStore = useApiStore();
 const { modelHistory } = storeToRefs($ApiStore)
 const modelOptions = computed(() => {
@@ -116,12 +124,23 @@ const props = defineProps({
 
 })
 
+const registerHotKey = async(key:string)=>{
+    let res = await isRegistered(key)
+    if(res){
+        window.$message.error('快捷键已被占用') 
+    }else{
+        await invoke('register_shortcut_by_frontend',{name:'dialog',shortcut:key})
+    }
+    
+}
+
 const saveSetting = async()=>{
     if(model.value == null) return;
     const s:AppSetting = model.value;
     if (s.api.model) {
         $ApiStore.addModelToHistory(s.api.model);
     }
+    await registerHotKey(s.hotkey.dialog)
     await updateAllSetting(s)
     $ApiStore.getApifromConfig();
     window.$message.success('保存成功');

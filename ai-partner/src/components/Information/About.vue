@@ -46,7 +46,7 @@
             <div class="info-item">
               <label>开发框架：</label>
               <span>
-                <a href="https://tauri.app/" target="_blank" rel="noopener noreferrer">tauri {{ tauriVersion }}</a>
+                <a href="https://tauri.app/" target="_blank" rel="noopener noreferrer">tauri {{ appInfo.tauriVersion }}</a>
                 /
                 <a href="https://vuejs.org/" target="_blank" rel="noopener noreferrer">vue {{version}}</a>
               </span>
@@ -93,30 +93,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, version } from 'vue';
+import { ref,reactive, onMounted, version } from 'vue';
 import { NTabs, NTabPane,NDivider,NAvatar } from 'naive-ui';
-import { getVersion, getName, getTauriVersion } from '@tauri-apps/api/app'
 import { invoke } from '@tauri-apps/api/core';
 import {open} from '@tauri-apps/plugin-shell'
-import versionJson from '../../utils/versionJson.json'
+
+import { AppInfo,getAppInfo } from '../composables/app_information';
 const darkMode = ref(false);
 
-let appInfo = reactive({
-  name: 'My Application',
+let appInfo = reactive<AppInfo>({
   version: '',
-  buildNumber: '2101',
-  buildDate: '2023-08-20',
-  configPath: '/Users/username/.app/config',
-  logo: '/path/to/logo.png'
+  name: '',
+  buildDate: '',
+  buildNumber: '',
+  configPath:'',
+  logo:'',
+  tauriVersion:'',
 });
 
-
-let tauriVersion = ref('');
 onMounted(async () => {
-  tauriVersion.value = await getTauriVersion();
-  appInfo.version = await getVersion();
-  appInfo.name = await getName()
-  appInfo.buildDate = new Date(versionJson.compileTime).toLocaleDateString();
+  const newInfo = await getAppInfo()
+  Object.assign(appInfo,newInfo)
 });
 
 
