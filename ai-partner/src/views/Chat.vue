@@ -112,7 +112,7 @@ const submitUserMessage = async() => {
 
 const $AppStore = useAppStore()
 const $ApiStore = useApiStore()
-let {api,smooth} = storeToRefs($ApiStore)
+let {api} = storeToRefs($ApiStore)
 let {generating} = storeToRefs($AppStore)
 const isExpanded = ref(false)
 const toggleExpand = () => isExpanded.value = !isExpanded.value
@@ -164,7 +164,7 @@ const throttleEmitScrollToBottom  = throttle(() =>emitter.emit('scrollToBottom')
 </script>
 <template>
   <div class="chat-view">
-    <ChatBoard :messages="messages" :smoothing="smooth" :model="api.model" :key="conversationId || 'new'"/>
+    <ChatBoard :messages="messages" :model="api.model" :key="conversationId || 'new'"/>
     <form class="chat-input" 
     :class="{ 'expanded': isExpanded }"
     @submit="(e) =>{

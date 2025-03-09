@@ -8,7 +8,9 @@ export const useApiStore = defineStore("api", {
         key: "",
         model:""
     },
-    smooth: false,
+    hotkey:{
+        dialog:""
+    },
     modelHistory: [] as string[]
   }),
   actions: {
@@ -17,7 +19,7 @@ export const useApiStore = defineStore("api", {
           this.api.url = setting.api.url
           this.api.key = setting.api.key
           this.api.model = setting.api.model
-          this.smooth = setting.smooth
+          this.hotkey.dialog = setting.hotkey.dialog
       },
       initModelHistory() {
         const history = localStorage.getItem('modelHistory')

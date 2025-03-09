@@ -1,45 +1,13 @@
-use tauri::{
-    AppHandle,State,
-    Error,
-    Manager,
-    WebviewWindowBuilder,WebviewUrl,
-    PhysicalSize
+use tauri::{State, Error};
+use super::super::{
+    APP,Configuration,AppState,
+    window::switch_dialog_window,
+    hotkey::register,
 };
-use crate::app::{Configuration,AppState};
-
-
 
 #[tauri::command]
-pub async fn create_dialog(app_handle: AppHandle) -> Result<(), Error> {
-    match app_handle.get_webview_window("dialog")  {
-        Some(w) => {
-            let v = w.is_visible()?;
-            if v {
-                w.set_always_on_top(false)?;
-                w.hide()?;
-            }else{
-                w.set_always_on_top(true)?;
-                w.show()?;
-            }
-        },
-        None => {
-            let window = WebviewWindowBuilder::new(
-                &app_handle ,"dialog", 
-                WebviewUrl::App("/dialog".into()))
-                .transparent(true)
-                .center()
-                .title("")
-                .resizable(false)
-                .shadow(false)
-                .always_on_top(true)
-                .decorations(false)
-                .build()?;
-
-            window.set_size(PhysicalSize::new(600, 400))?;
-
-        }
-    } 
-    Ok(())
+pub async fn create_dialog() -> Result<(), Error> {
+    switch_dialog_window()
 }
 
 
@@ -79,7 +47,7 @@ pub async fn set_config(state : State<'_,AppState>,new_config: Configuration) ->
             config.api.key = new_config.api.key.clone();
             config.api.url = new_config.api.url.clone();
             config.api.model = new_config.api.model.clone();
-            config.smooth = new_config.smooth.clone();
+            config.hotkey.dialog = new_config.hotkey.dialog.clone();
             let mut c = state.config.try_lock().expect("set config lock error");
             *c = config.clone();
         })
@@ -87,5 +55,20 @@ pub async fn set_config(state : State<'_,AppState>,new_config: Configuration) ->
         return Err(e.to_string());
     }
     // });
+    Ok(())
+}
+
+#[tauri::command]
+pub fn register_shortcut_by_frontend(name: &str, shortcut: &str) -> Result<(), String> {
+    let app_handle = APP.get().unwrap();
+    match name {
+        "dialog" => register(
+            app_handle,
+            "dialog",
+            ||{let _ = switch_dialog_window();},
+            shortcut,
+        )?,
+        _ => {}
+    }
     Ok(())
 }

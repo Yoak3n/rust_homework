@@ -36,12 +36,12 @@
     ],
     "security": {
       "csp": null
-    },
-    "withGlobalTauri": true
+    }
   },
   "bundle": {
     "active": true,
     "targets": "all",
+    "copyright": "GPLv3",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

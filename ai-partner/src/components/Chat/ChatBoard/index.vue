@@ -76,10 +76,6 @@ defineProps(
       type: Array as PropType<MessageItem[]>,
       required: true
     },
-    smoothing:{
-      type:Boolean,
-      default:false
-    },
     model:{
       type:String,
       default:''

@@ -3,6 +3,7 @@ use tauri::{
 };
 use tauri::{App, Emitter, Error};
 use tauri_plugin_global_shortcut::{Builder, Code, Modifiers, ShortcutState};
+#[allow(dead_code)]
 pub fn register_shortcuts(app: &App) -> Result<(), Error> {
     let handle = app.handle();
     handle.plugin({

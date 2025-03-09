@@ -26,7 +26,6 @@
   .n-button:not(.n-button--disabled):active,
   .n-button:not(.n-button--disabled):focus,
   .n-button:not(.n-button--disabled):hover {
-      background-color: var(--n-color-pressed);
       color: #4a90e2;
     }
   }

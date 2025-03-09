@@ -45,19 +45,38 @@ export const themeOverrides: GlobalThemeOverrides = {
   },
   Popconfirm: {
     contentTextColor: '#666666',
-    actionColor: '#4a90e2',
     iconColor: '#4a90e2',
-    buttonColor: '#4a90e2',
-    borderRadius: '6px',
+    borderRadius: '8px',
     padding: '16px',
-    actionButtonColor: '#ffffff',
-    actionButtonBorderColor: '#4a90e2',
-    actionButtonBorderHoverColor: '#6ba7e8',
-    actionButtonBorderPressedColor: '#3d7abd',
-    actionButtonTextColor: '#4a90e2',
-    actionButtonTextHoverColor: '#ffffff',
-    actionButtonColorHover: '#6ba7e8',
-    actionButtonColorPressed: '#3d7abd',
+    color: '#ffffff',
+    boxShadow: '0 2px 12px rgba(74, 144, 226, 0.12)',
+    
+    // 使用与控制台显示的 CSS 变量对应的属性名
+    // 确认按钮样式
+    actionButtonColor: '#4a90e2',           // 对应 --n-color
+    actionButtonColorHover: '#5c9de6',      // 对应 --n-color-hover
+    actionButtonColorPressed: '#3d7abd',    // 对应 --n-color-pressed
+    actionButtonTextColor: '#ffffff',       // 对应 --n-text-color
+    actionButtonTextColorHover: '#ffffff',  // 对应 --n-text-color-hover
+    actionButtonTextColorPressed: '#ffffff',// 对应 --n-text-color-pressed
+    actionButtonBorderColor: '#4a90e2',     // 对应 --n-border
+    actionButtonBorderHoverColor: '#5c9de6',// 对应 --n-border-hover
+    actionButtonBorderPressedColor: '#3d7abd', // 对应 --n-border-pressed
+    
+    // 其他样式属性
+    fontSize: '14px',
+    titleFontSize: '15px',
+    titleFontWeight: '600',
+    titleTextColor: '#333333',
+    
+    // 取消按钮样式可能需要单独设置
+    negativeButtonColor: '#f5f7fa',
+    negativeButtonTextColor: '#666666',
+    negativeButtonBorderColor: '#e0e0e6',
+    negativeButtonColorHover: '#f0f2f5',
+    negativeButtonTextColorHover: '#4a90e2',
+    negativeButtonColorPressed: '#e8eaed',
+    negativeButtonTextColorPressed: '#3d7abd',
   },
   Button: {
     textColor: '#666666',

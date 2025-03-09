@@ -11,13 +11,16 @@ export interface ErrorMessage {
 }
 
 export interface AppSetting  {
-    smooth: boolean;
     api: API;
+    hotkey: Hotkey;
 }
 export interface API {
     url: string;
     key: string;
     model: string;
+}
+export interface Hotkey{
+    dialog:string
 }
 
 export interface Segment {

@@ -57,7 +57,7 @@ import {AddCircleOutline, ChatboxEllipsesOutline, TrashOutline} from '@vicons/io
 import { NLayout, NLayoutSider, NLayoutContent, NMenu, NIcon, NButton, NPopconfirm,NConfigProvider } from 'naive-ui'
 import type { MenuOption } from 'naive-ui'
 
-import {themeOverrides} from '../utils'
+import { themeOverrides} from '../utils'
 import Modal from '../components/Modal/index.vue'
 import Message from '../components/Icon/Message.vue'
 import emitter from '../bus'
@@ -156,7 +156,7 @@ const menuOptions = computed<MenuOption[]>(() => [
                 showIcon: false,
                 positiveText: '确定',
                 negativeText: '取消',
-                style:'z-index: 10000'
+                placement:"right",
             }, {
                 trigger: () => h(NButton, {
                     size: 'tiny',
@@ -179,11 +179,13 @@ const menuOptions = computed<MenuOption[]>(() => [
 <style lang="less">
 .home-wrapper {
     height: 100%;
-
     .n-config-provider{
-        height: 100%;
         .n-layout {
             height: 100%;
+            .n-popconfirm__action{
+                .n-button{
+                }
+            }
         }
     }
 }

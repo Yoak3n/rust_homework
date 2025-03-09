@@ -58,9 +58,11 @@
                 </n-button>
             </n-form-item>
             <n-divider></n-divider>
-            <!-- <n-form-item label="smooth (invalid)" >
-                <n-switch v-model:value="model!.smooth" disabled/>
-            </n-form-item>                 -->
+            <n-form-item label="快捷对话框" >
+                <n-input placeholder="按下按键设置快捷键" v-model:value="model!.hotkey.dialog" @keydown="(e)=>{
+                    keyDown(e,updateHotKeyDialog)
+                }" />
+            </n-form-item>                
             <n-form-item>
                 <n-button type="primary" class="confirm-btn" style="margin: 0 auto;width:20%" @click="saveSetting">确定</n-button>
             </n-form-item>
@@ -75,6 +77,7 @@ import type { AppSetting } from '../../types';
 import { storeToRefs } from 'pinia'
 import { useApiStore } from '../../store';
 import {updateAllSetting,querySetting} from '../../api/db'
+import { keyDown } from '../composables/recognize_key';
 
 const $ApiStore = useApiStore();
 const { modelHistory } = storeToRefs($ApiStore)
@@ -84,11 +87,18 @@ const modelOptions = computed(() => {
         value: m
     }));
 })
+
+const updateHotKeyDialog = (value:string)=>{
+    model.value!.hotkey.dialog = value;
+}
+
 let model = ref<AppSetting|null>({
     api:{
         url: '', key: '', model: ''
     },
-    smooth:false
+    hotkey:{
+        dialog:''
+    }
 }
 );
 onMounted(async()=>{
