@@ -6,22 +6,13 @@ declare module "*.vue" {
   export default component;
 }
 
-declare module 'markdown-it' {
-  const MarkdownIt: any;
-  export default MarkdownIt;
-}
-
-declare module 'markdown-it-highlightjs' {
-  const highlightjs: any;
-  export default highlightjs;
-}
-import type { MessageApi } from 'naive-ui'
+import type { MessageApi, DialogApi,NotificationApi, LoadingBarApi } from 'naive-ui'
 declare global {
   interface Window {
-    $loadingBar: LoadingBarInst
-    $dialog: DialogApiInjection
+    $loadingBar: LoadingBarApi
+    $dialog: DialogApi
     $message: MessageApi
-    $notification: NotificationApiInjection
+    $notification: NotificationApi
   }
 }
 

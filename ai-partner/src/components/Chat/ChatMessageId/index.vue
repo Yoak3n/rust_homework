@@ -87,6 +87,8 @@ const throttleEmitScrollToBottom = throttle(() => {emitter.emit('scrollToBottom'
 onBeforeUnmount(() => {
     getUnlistenFnAndOff(messageUpdate.value.timestamp!)
 })
+
+
 </script>
 
 

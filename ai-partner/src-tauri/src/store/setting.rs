@@ -78,7 +78,7 @@ impl Configuration {
     pub fn init_config() -> Result<Configuration, Box<dyn std::error::Error>> {
         let config_path = format!("{}.yaml", DEFAULT_CONFIG);
         
-               // 检查配置文件是否存在
+        // 检查配置文件是否存在
         if !Path::new(&config_path).exists() {
             // 创建默认配置
             let default_config = Configuration::default();
@@ -118,7 +118,6 @@ impl Configuration {
         match serde_yaml::to_string(&*config)
             .map_err(|e| -> Box<dyn std::error::Error> { e.into() })
             .and_then(|data| {
-                println!("Saving config: {:?}", data);
                 write(format!("{}.yaml", DEFAULT_CONFIG),data)
                 .map_err(|e:std::io::Error|e.into())
             }){

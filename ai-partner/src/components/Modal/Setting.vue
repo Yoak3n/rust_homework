@@ -65,6 +65,7 @@
                     keyDown(e,updateHotKeyDialog)
                 }" 
                 @focus="()=>{
+                    DialogHotkeyChanged = true
                     unregister(model!.hotkey.dialog)
                     model!.hotkey.dialog = '';
                 }"
@@ -95,7 +96,7 @@ const modelOptions = computed(() => {
         value: m
     }));
 })
-
+let DialogHotkeyChanged = ref(false)
 const updateHotKeyDialog = (value:string)=>{
     model.value!.hotkey.dialog = value;
 }
@@ -121,17 +122,16 @@ const props = defineProps({
         type: Function,
         default: () => {}
     }
-
 })
 
 const registerHotKey = async(key:string)=>{
+    if(!DialogHotkeyChanged.value){return}
     let res = await isRegistered(key)
     if(res){
         window.$message.error('快捷键已被占用') 
     }else{
         await invoke('register_shortcut_by_frontend',{name:'dialog',shortcut:key})
     }
-    
 }
 
 const saveSetting = async()=>{

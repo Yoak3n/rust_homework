@@ -28,18 +28,18 @@ const ts = ref(Date.now())
 // 加载历史对话
 const loadConversation = async (id: number) => {
   try {
-    const msgs = await invoke('get_conversation_messages', { conversationId: id })
+    const msgs: MessageItem[] = await invoke('get_conversation_messages', { conversationId: id })
     if (Array.isArray(msgs)) {
-      messages.value.splice(0, messages.value.length, ...(msgs as MessageItem[]))
+      messages.value.splice(0, messages.value.length, ...msgs)
       await nextTick()
       conversationId.value = id
       throttleEmitScrollToBottom()
     } else {
-      console.error('加载对话返回格式错误')
+      window.$message.error('加载对话返回格式错误')
       router.push('/chat/new')
     }
   } catch (e) {
-    console.error('加载对话失败:', e)
+    window.$message.error('加载对话失败:' + e)
     router.push('/chat/new')
   }
 }
@@ -160,6 +160,15 @@ const resetHistory = async() => {
   input.value = ''
   $AppStore.setGenerating(false)
 }
+
+// 需要配合后端把消息的id和timestamp关联起来
+// const retryAskLastAnswer = async(conversationId:number,userMessageId:number) => {
+//   const msgs: MessageItem[] = await invoke('get_conversation_messages', { conversationId: conversationId }) 
+//   let index= msgs.findIndex((item) => item.timestamp == userMessageId)
+//   messages.value.splice(0, index + 1, ...msgs.slice(0, index + 1))
+// }
+
+
 const throttleEmitScrollToBottom  = throttle(() =>emitter.emit('scrollToBottom'), 1000)
 </script>
 <template>

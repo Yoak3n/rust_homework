@@ -18,8 +18,16 @@ pub async fn completions_stream(app_handle: tauri::AppHandle, state: State<'_,Ap
         "messages": messages,
         "model":&api.model,
     });
+    // 处理不完整Url输入
+    let url = if api.url.ends_with("v1/") {
+        format!("{}chat/completions", api.url)
+    }else if api.url.ends_with("v1"){
+        format!("{}/chat/completions", api.url)
+    }else{
+        api.url
+    };
     let response = match client
-        .post(&api.url)
+        .post(&url)
         .headers(headers)
         .json(&payload)
         .send()

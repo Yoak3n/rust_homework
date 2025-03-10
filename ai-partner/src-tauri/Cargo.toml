@@ -1,6 +1,6 @@
 [package]
 name = "ai-partner"
-version = "0.1.63"
+version = "0.1.7"
 description = "A Tauri App"
 authors = ["Yoake"]
 edition = "2021"

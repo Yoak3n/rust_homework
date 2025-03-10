@@ -40,7 +40,7 @@ dependencies = [
 
 [[package]]
 name = "ai-partner"
-version = "0.1.63"
+version = "0.1.7"
 dependencies = [
  "futures",
  "once_cell",

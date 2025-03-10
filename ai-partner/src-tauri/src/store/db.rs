@@ -24,7 +24,7 @@ impl Database {
         // 创建 messages 表，添加 conversation_id 外键
         conn.execute(
             "CREATE TABLE IF NOT EXISTS messages (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id INTEGER PRIMARY KEY,
                 conversation_id INTEGER NOT NULL,
                 role TEXT NOT NULL,
                 content TEXT NOT NULL,
@@ -68,9 +68,10 @@ impl Database {
     pub fn save_message(&self, conversation_id: i64, message: &MessageItem) -> Result<i64> {
         let conn = self.conn.write().unwrap();
         conn.execute(
-            "INSERT INTO messages (conversation_id, role, content, reasoning_content) 
-             VALUES (?1, ?2, ?3, ?4)",
+            "INSERT INTO messages (id,conversation_id, role, content, reasoning_content) 
+             VALUES (?1, ?2, ?3, ?4,?4)",
             (
+                message.timestamp,
                 conversation_id,
                 &message.role,
                 &message.content,
