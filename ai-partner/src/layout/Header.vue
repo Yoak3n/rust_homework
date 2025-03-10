@@ -59,7 +59,7 @@ const cancelClose = () => {
 <template>
     <div class="header" data-tauri-drag-region>
         <div class="title">
-            <img src="../../src-tauri/icons/icon.png" alt="tauri" width="20" height="20">
+            <!-- <img src="../../src-tauri/icons/icon.png" alt="tauri" width="20" height="20"> -->
         </div>
         <div class="option">
             <button @click="minimize">

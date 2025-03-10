@@ -21,7 +21,7 @@
       </n-tab-pane>
       <n-tab-pane name="chap3" tab="版本信息" display-directive="show:lazy">
         <header class="brand-header">
-          <img src="/src/assets/tauri.svg" alt="App Logo" class="app-logo" />
+          <img src="../../../src-tauri/icons/icon.png" alt="App Logo" class="app-logo" />
           <div class="title-group">
             <h1>{{ appInfo.name }}</h1>
             <p class="version-info">
@@ -45,9 +45,15 @@
             <div class="info-item">
               <label>开发框架：</label>
               <span>
-                <a href="https://tauri.app/" target="_blank" rel="noopener noreferrer">tauri {{ appInfo.tauriVersion }}</a>
+                <a href="https://tauri.app/" target="_blank" rel="noopener noreferrer">
+                  <img src="../../assets/tauri.svg" alt="" height="15" >
+                  tauri {{ appInfo.tauriVersion }}
+                </a>
                 /
-                <a href="https://vuejs.org/" target="_blank" rel="noopener noreferrer">vue {{version}}</a>
+                <a href="https://vuejs.org/" target="_blank" rel="noopener noreferrer">
+                  <img src="../../assets/vue.svg" alt=""  height="15">
+                  Vue {{version}}
+                </a>
               </span>
             </div>
           </div>

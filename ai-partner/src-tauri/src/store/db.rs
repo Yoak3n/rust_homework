@@ -69,7 +69,7 @@ impl Database {
         let conn = self.conn.write().unwrap();
         conn.execute(
             "INSERT INTO messages (id,conversation_id, role, content, reasoning_content) 
-             VALUES (?1, ?2, ?3, ?4,?4)",
+             VALUES (?1, ?2, ?3, ?4,?5)",
             (
                 message.timestamp,
                 conversation_id,
