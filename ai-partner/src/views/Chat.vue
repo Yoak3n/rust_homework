@@ -28,9 +28,9 @@ const ts = ref(Date.now())
 // 加载历史对话
 const loadConversation = async (id: number) => {
   try {
-    const msgs: MessageItem[] = await invoke('get_conversation_messages', { conversationId: id })
+    const msgs= await invoke('get_conversation_messages', { conversationId: id })
     if (Array.isArray(msgs)) {
-      messages.value.splice(0, messages.value.length, ...msgs)
+      messages.value.splice(0, messages.value.length, ...(msgs as MessageItem[] ))
       await nextTick()
       conversationId.value = id
       throttleEmitScrollToBottom()
@@ -161,11 +161,13 @@ const resetHistory = async() => {
   $AppStore.setGenerating(false)
 }
 
-// 需要配合后端把消息的id和timestamp关联起来
+// 需要配合后端把消息的id和timestamp关联起来,还需要添加index字段，让针对同一个问题的回复可以关联之前的回复，出现在同一个位置
 // const retryAskLastAnswer = async(conversationId:number,userMessageId:number) => {
-//   const msgs: MessageItem[] = await invoke('get_conversation_messages', { conversationId: conversationId }) 
-//   let index= msgs.findIndex((item) => item.timestamp == userMessageId)
-//   messages.value.splice(0, index + 1, ...msgs.slice(0, index + 1))
+//   const msgs = await invoke('get_conversation_messages', { conversationId: conversationId }) 
+//   if (Array.isArray(msgs) && msgs.length > 0){
+//     let index= msgs.findIndex((item) => item.timestamp == userMessageId)
+//     messages.value.splice(0, index + 1, ...msgs.slice(0, index + 1))
+//   }
 // }
 
 
