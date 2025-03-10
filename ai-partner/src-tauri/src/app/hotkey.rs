@@ -24,7 +24,6 @@ where
             key.to_string()
         }
     };
-    println!("register_shortcut: {}",hotkey);
     if !hotkey.is_empty() {
         let global_shortcut_manager = app_handle.global_shortcut();
         match global_shortcut_manager.on_shortcut(hotkey.as_str(),move |_, _, event| {
@@ -32,9 +31,7 @@ where
                     handler();
                 }
             }){
-            Ok(()) => {
-                println!("Registered global shortcut: {} for {}", hotkey, name);
-            }
+            Ok(()) => {}
             Err(e) => {
                 eprintln!("Failed to register global shortcut: {} {:?}", hotkey, e);
                 return Err(e.to_string());
