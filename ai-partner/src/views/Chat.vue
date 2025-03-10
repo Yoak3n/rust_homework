@@ -161,14 +161,33 @@ const resetHistory = async() => {
   $AppStore.setGenerating(false)
 }
 
-// 需要配合后端把消息的id和timestamp关联起来,还需要添加index字段，让针对同一个问题的回复可以关联之前的回复，出现在同一个位置
+// 需要配合后端把消息的id和timestamp关联起来
+// 还需要添加index字段，让针对同一个问题的回复可以关联之前的回复，出现在同一个位置
 // const retryAskLastAnswer = async(conversationId:number,userMessageId:number) => {
-//   const msgs = await invoke('get_conversation_messages', { conversationId: conversationId }) 
-//   if (Array.isArray(msgs) && msgs.length > 0){
-//     let index= msgs.findIndex((item) => item.timestamp == userMessageId)
-//     messages.value.splice(0, index + 1, ...msgs.slice(0, index + 1))
-//   }
-// }
+// 目前只实现简化版本,即只针对最后一个用户消息，重新生成的回复会出现在之前的回复下面
+const retryAskLastAnswer = async() => {
+  try{
+    const userMessages = messages.value.filter((item) => item.role == 'user')
+    const lastUserMessage = userMessages.length > 0 ? userMessages[userMessages.length - 1] : null
+    const msgs = await invoke('get_conversation_messages', { conversationId: conversationId.value }) 
+    if (Array.isArray(msgs) && msgs.length > 0){
+      let index= msgs.findIndex((item) => item.timestamp == lastUserMessage?.timestamp )
+      if (index == -1) {
+        window.$message.error('找不到对应的用户消息')
+        return
+      }else{
+        // messages.value.splice(index+1, messages.value.length - (index + 1))
+        ts.value = Date.now()
+        const newMessage = {role:'assistant-generating', content:'', timestamp:ts.value,reasoning_content:''}
+        setMessage(newMessage)
+        await generateBotResponseStream()
+      }
+    }
+  }catch(e){
+    window.$message.error(`重试失败:${e}`, {duration: 5000})
+  }
+
+}
 
 
 const throttleEmitScrollToBottom  = throttle(() =>emitter.emit('scrollToBottom'), 1000)
@@ -197,7 +216,7 @@ const throttleEmitScrollToBottom  = throttle(() =>emitter.emit('scrollToBottom')
         }
       }
       "/>
-      <button type="button" class="reset-btn" @click="resetHistory">
+      <button type="button" class="reset-btn" @click="retryAskLastAnswer">
         <n-icon size="24">
           <Reload/>
         </n-icon>
