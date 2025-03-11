@@ -50,3 +50,9 @@ pnpm run tauri build
 ## 注意事项
 1. 首次运行前请检查运行环境是否满足要求：Windows系统版本在Windows10及以上，否则可能无法正常运行，系统需安装[WebView2](https://developer.microsoft.com/zh-cn/microsoft-edge/webview2/#download)，
 2. API调用需要有效的OpenAI凭证或兼容OpenAI API的AI对话服务
+
+## 参考
+- 应用开发框架[tauri](https://tauri.app/)
+- 前端开发框架[vue](https://v3.cn.vuejs.org/)
+- UI组件[naive-ui](https://www.naiveui.com/zh-CN/os-theme)
+- 快捷键注册实现参考[pot-desktop](https://github.com/pot-app/pot-desktop)
