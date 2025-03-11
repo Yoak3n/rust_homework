@@ -1,0 +1,3 @@
+[submodule "ai-partner"]
+	path = ai-partner
+	url = https://github.com/Yoak3n/ai-partner.git
