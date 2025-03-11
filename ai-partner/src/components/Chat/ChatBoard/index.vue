@@ -11,7 +11,7 @@ const scrollTimeout = ref<number | null>(null);
 // 处理用户滚动事件
 const handleScroll = () => {
   if (!chatBody.value) return;
-  const isAtBottom = chatBody.value.scrollHeight - chatBody.value.scrollTop <= chatBody.value.clientHeight + 50;
+  const isAtBottom = chatBody.value.scrollHeight - chatBody.value.scrollTop <= chatBody.value.clientHeight + 150;
   
   // 如果不在底部，设置用户正在滚动状态
   if (!isAtBottom) {

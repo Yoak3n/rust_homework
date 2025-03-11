@@ -10,7 +10,7 @@ import {Reload,ReturnUpForwardOutline,Pause} from '@vicons/ionicons5'
 import ChatBoard from '../components/Chat/ChatBoard/index.vue'
 
 import type { MessageItem} from '../types'
-import { throttle } from '../utils';
+import { addCopyButtons, throttle } from '../utils';
 import {unListenAll} from '../bus'
 import emitter from '../bus';
 import { useApiStore ,useAppStore} from '../store';
@@ -31,7 +31,7 @@ const loadConversation = async (id: number) => {
     const msgs= await invoke('get_conversation_messages', { conversationId: id })
     if (Array.isArray(msgs)) {
       messages.value.splice(0, messages.value.length, ...(msgs as MessageItem[] ))
-      await nextTick()
+      nextTick(()=>addCopyButtons())
       conversationId.value = id
       throttleEmitScrollToBottom()
     } else {
@@ -64,6 +64,7 @@ watch(
       $AppStore.setGenerating(false)
     } else if (newId) {
       await loadConversation(Number(newId))
+      nextTick(()=>addCopyButtons())
     }
   },
   { immediate: true, flush: 'post'}
@@ -89,8 +90,8 @@ const submitUserMessage = async() => {
       // 使用第一条用户消息的前20个字符作为对话标题
       const title = input.value.slice(0, 20) + (input.value.length > 20 ? '...' : '')
       conversationId.value = await invoke('create_conversation', { title })
-      emitter.emit('conversation-updated')
-      history.replaceState(history.state, '', `?id=${conversationId.value}`)
+      emitter.emit('conversation-updated',conversationId.value)
+      history.replaceState(history.state, '', `${conversationId.value}`)
       // await router.replace(`/chat/${conversationId.value}`)
     } catch (e) {
       window.$message.error(`'创建对话失败: ${e}`,{duration: 5000})
@@ -146,7 +147,10 @@ const updateHistoryStream = (m: MessageItem) => {
   const index = messages.value.findIndex((item) =>item.timestamp == m.timestamp)
   if (index != -1){messages.value[index] = {...messages.value[index], content:m.content, reasoning_content:m.reasoning_content, role:m.role}
   }else{messages.value.push(m)}
-  throttleEmitScrollToBottom()
+  nextTick(async() => { 
+    throttleEmitScrollToBottom()
+    addCopyButtons()
+  })
 }
 
 const resetHistory = async() => {

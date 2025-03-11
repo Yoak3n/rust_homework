@@ -107,3 +107,33 @@ export function throttle<T extends (...args: any[]) => void>(
     }
   };
 }
+
+export const addCopyButtons = ()=>{
+  const codeBlocks = document.querySelectorAll<HTMLElement>('pre code');
+  if (!codeBlocks.length) return;
+
+  codeBlocks.forEach((codeBlock) => {
+      // 创建复制按钮
+      if (codeBlock && !codeBlock.querySelector('.copy-button')){
+          const copyButton = document.createElement('button');
+          copyButton.className = 'copy-button';
+          copyButton.textContent = '复制代码';
+     
+          // 将按钮插入到代码块容器中
+          const pre = codeBlock.parentElement;
+          if (!pre) return;
+          pre.style.position = 'relative';
+          pre.appendChild(copyButton);
+          
+          // 添加点击事件
+          copyButton.addEventListener('click', () => {
+              navigator.clipboard.writeText(codeBlock.innerText).then(() => {
+                  copyButton.textContent = '已复制';
+                  setTimeout(() => (copyButton.textContent = '复制代码'), 1500);
+              }).catch(err => window.$message.error('复制失败: '+ err));
+          });
+      }
+     
+  });
+  
+}

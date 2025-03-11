@@ -68,7 +68,9 @@ const historyChats = ref<Array<{ id: number, title: string }>>([])
 const router = useRouter()
 
 // 获取历史对话
-const loadHistoryChats = async () => {
+const loadHistoryChats = async (id: number) => {
+    // 更新菜单ui
+    if (id && id != 0) {activeKey.value = `chat-${id}`}
     try {
         historyChats.value = await invoke('get_conversations')
     } catch (e) {
@@ -95,11 +97,11 @@ watch(
 )
 onMounted(() => {
     activeKey.value = $route.name?.toString() || ''
-    loadHistoryChats()
-    emitter.on('conversation-updated', loadHistoryChats)
+    loadHistoryChats(0)
+    emitter.on('conversation-updated', (id)=>loadHistoryChats(id as number))
 })
 onBeforeUnmount(() => {
-    emitter.off('conversation-updated', loadHistoryChats)
+    emitter.off('conversation-updated')
 })
 onActivated(() => {
     activeKey.value = $route.name?.toString() || ''
@@ -108,7 +110,7 @@ const deleteConversation = async (id: number, event: MouseEvent) => {
     event.preventDefault() // 阻止路由跳转
     try {
         await invoke('delete_conversation', { conversationId: id })
-        await loadHistoryChats() // 重新加载对话列表
+        await loadHistoryChats(0) // 重新加载对话列表
         // 如果当前正在查看被删除的对话，则跳转到新建对话页面
         if ($route.params.id === id.toString()) {
             router.push('/chat/new')
@@ -182,10 +184,6 @@ const menuOptions = computed<MenuOption[]>(() => [
     .n-config-provider{
         .n-layout {
             height: 100%;
-            .n-popconfirm__action{
-                .n-button{
-                }
-            }
         }
     }
 }
