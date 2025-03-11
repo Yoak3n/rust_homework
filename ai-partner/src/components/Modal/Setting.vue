@@ -7,6 +7,7 @@
         @submit="saveSetting"
         :style="{ width: '600px', textAlign: 'start' }"
             label-align="left">
+            <n-divider >API</n-divider>
             <n-form-item label="API_base">
                 <n-input placeholder="请输入API请求地址" v-model:value="model!.api.url" />
             </n-form-item>
@@ -39,7 +40,6 @@
                 </n-input>
             </n-form-item>
             <n-form-item label="model">
-                <!-- <n-input placeholder="请输入模型名称"  v-model:value="model!.api.model"/> -->
                 <n-select
                     v-model:value="model!.api.model" 
                     :options="modelOptions"
@@ -57,7 +57,7 @@
                     清除历史
                 </n-button>
             </n-form-item>
-            <n-divider></n-divider>
+            <n-divider>快捷键</n-divider>
             <n-form-item label="快捷对话框" >
                 <n-input placeholder="按下按键设置快捷键" 
                 v-model:value="model!.hotkey.dialog" 

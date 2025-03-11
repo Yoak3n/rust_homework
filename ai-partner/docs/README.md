@@ -1,6 +1,6 @@
 # AI对话助手
 
-基于Tauri的Windows桌面应用，结合Rust后端与Vue3前端，提供简便的智能对话功能。
+基于Tauri的桌面应用，结合Rust后端与Vue3前端，提供简便的智能对话功能。
 
 ## 功能特性
 
@@ -10,6 +10,13 @@
 ✅ 自适应布局界面  
 ✅ 文本生成暂停控制  
 ✅ 全局唤出快捷对话
+### 主界面
+
+![主界面](https://github.com/Yoak3n/rust_homework/blob/refactor/ai-partner/docs/main.png?raw=true)
+
+### 快捷对话
+
+![快捷对话](https://github.com/Yoak3n/rust_homework/blob/refactor/ai-partner/docs/dialog.png?raw=true)
 
 ## 技术栈
 
@@ -25,7 +32,7 @@
 
 ### 环境要求
 - Rust 1.70+
-- Node.js 18+
+- Node 20+
 - Pnpm
 
 ### 快速启动
@@ -41,5 +48,5 @@ pnpm run tauri build
 ```
 
 ## 注意事项
-1. 首次运行前请检查运行环境是否满足要求：Windows系统需安装 WebView2，系统版本在Windows10及以上，否则可能无法正常运行
+1. 首次运行前请检查运行环境是否满足要求：Windows系统版本在Windows10及以上，否则可能无法正常运行，系统需安装[WebView2](https://developer.microsoft.com/zh-cn/microsoft-edge/webview2/#download)，
 2. API调用需要有效的OpenAI凭证或兼容OpenAI API的AI对话服务
